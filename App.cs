@@ -26,12 +26,12 @@ namespace CreateSPSite
         private void Update()
         {
             Console.WriteLine("Welcome...");
-            Console.WriteLine("Choose one options");
-            Console.WriteLine("[1] Create Employees list");
-            Console.WriteLine("[2] Create Project list");
-            Console.WriteLine("[3] Create Project Document list");
-            Console.WriteLine("[Esc] Exit");
+            Console.WriteLine("Please select 1 action");
+            Console.WriteLine("[1] Create Employees list [2] Create Project list [3] Create Project Document list [Esc or Ctrl-C] Exit");
             _key = Console.ReadKey();
+
+            // xuống 1 dòng
+            Console.WriteLine();
             HandleKey(_key);
         }
 
@@ -47,6 +47,14 @@ namespace CreateSPSite
                     break;
                 case ConsoleKey.D3:
                     Console.WriteLine("You press 3");
+                    break;
+                case ConsoleKey.D4:
+                    // Delete content type by name
+                    SharepointService.DeleteContentType("Employee1");
+                    break;
+                case ConsoleKey.D5:
+                    // Delete content type by name
+                    SharepointService.FindContentTypeAssoc("Employee1");
                     break;
                 case ConsoleKey.Escape:
                     _over = true;
