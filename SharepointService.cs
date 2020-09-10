@@ -21,7 +21,6 @@ namespace CreateSPSite
             {
                 clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
 
-
                 ContentTypeCollection contentTypeCollection;
                 contentTypeCollection = clientContext.Web.ContentTypes;
 
@@ -124,6 +123,118 @@ namespace CreateSPSite
                     clientContext.ExecuteQuery();
 
                     Console.WriteLine("Finished creating list...");
+            }
+        }
+
+        /// <summary>
+        /// Tạo 
+        /// </summary>
+        public static void CreateProjectList()
+        {
+            var secureString = new SecureString();
+            password.ToCharArray().ToList().ForEach(c => secureString.AppendChar(c));
+
+            using (ClientContext clientContext = new ClientContext(ITFirm))
+            { 
+                clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
+                                ContentTypeCollection contentTypeCollection;
+                contentTypeCollection = clientContext.Web.ContentTypes;
+
+                clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
+
+                ContentType item = (from contentType in contentTypeCollection where contentType.Name == "Project" select contentType).FirstOrDefault();
+
+                if (item != null)
+                {
+                    Console.WriteLine("Content type already exists....");
+                }
+                else
+                {
+                    Console.WriteLine("Start creating content type.");
+
+                    ContentTypeCreationInformation contentTypeCreationInformation = new ContentTypeCreationInformation
+                    {
+                        Name = "Project",
+                        // Description of the new content type
+                        Description = "New Content Type Description",
+
+                        // Name of the group under which the new content type will be creted
+                        Group = "Training"
+                    };
+
+                    item = contentTypeCollection.Add(contentTypeCreationInformation);
+
+                    clientContext.Load(item);
+                    clientContext.ExecuteQuery();
+
+                    Console.WriteLine("Add column....");
+                    Web rootWeb = clientContext.Site.RootWeb;
+
+                    string schemaTextField = "<Field ID='" + Guid.NewGuid() + "' Type='Text' Name='Project Name' StaticName='ProjectName' DisplayName='Project Name' />";
+                    Field simpleTextField = rootWeb.Fields.AddFieldAsXml(schemaTextField, false, AddFieldOptions.AddFieldInternalNameHint);
+                    clientContext.ExecuteQuery();
+
+                    item.FieldLinks.Add(new FieldLinkCreationInformation
+                    {
+                        Field = simpleTextField
+                    });
+                    item.Update(false);
+                    clientContext.ExecuteQuery();
+
+                    Console.WriteLine("Add column finished....");
+
+                    Console.WriteLine("Finish creating Content Type");
+                }
+
+                Console.WriteLine("Creating list...");
+
+                // Access subsite
+                Web hRWeb = clientContext.Site.OpenWeb("HR");
+
+                ListCreationInformation creationInfo = new ListCreationInformation();
+                creationInfo.Title = "Projects";
+                creationInfo.Description = "New list description";
+                creationInfo.TemplateType = (int)ListTemplateType.GenericList;
+
+                List newList = hRWeb.Lists.Add(creationInfo);
+                newList.ContentTypesEnabled = true;
+                newList.ContentTypes.AddExistingContentType(item);
+
+                clientContext.Load(newList);
+                clientContext.ExecuteQuery();
+
+                contentTypeCollection = newList.ContentTypes;
+
+                clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
+
+                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
+
+                if (targetContentType != null)
+                {
+                    targetContentType.DeleteObject();
+                }
+
+                clientContext.Load(newList);
+                clientContext.ExecuteQuery();
+
+                // Update the view
+                View view = newList.Views.GetByTitle("All Items");
+                clientContext.Load(view, v => v.ViewFields);
+                Field name = newList.Fields.GetByInternalNameOrTitle("ProjectName");
+
+                clientContext.Load(name);
+                clientContext.ExecuteQuery();
+
+                view.ViewFields.Add(name.InternalName);
+                view.Update();
+                clientContext.ExecuteQuery();
+
+                // Execute the query to the server.
+                clientContext.ExecuteQuery();
+
+                Console.WriteLine("Finished creating list...");
             }
         }
 
