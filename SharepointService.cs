@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Security;
 
 namespace CreateSPSite
@@ -76,59 +77,59 @@ namespace CreateSPSite
                     Console.WriteLine("Finish creating Content Type");
                 }
 
-                    Console.WriteLine("Creating list...");
+                Console.WriteLine("Creating list...");
 
-                    // Access subsite
-                    Web hRWeb = clientContext.Site.OpenWeb("HR");
+                // Access subsite
+                Web hRWeb = clientContext.Site.OpenWeb("HR");
 
-                    ListCreationInformation creationInfo = new ListCreationInformation();
-                    creationInfo.Title = "Employees";
-                    creationInfo.Description = "New list description";
-                    creationInfo.TemplateType = (int)ListTemplateType.GenericList;
+                ListCreationInformation creationInfo = new ListCreationInformation();
+                creationInfo.Title = "Employees";
+                creationInfo.Description = "New list description";
+                creationInfo.TemplateType = (int)ListTemplateType.GenericList;
 
-                    List newList = hRWeb.Lists.Add(creationInfo);
-                    newList.ContentTypesEnabled = true;
-                    newList.ContentTypes.AddExistingContentType(item);
+                List newList = hRWeb.Lists.Add(creationInfo);
+                newList.ContentTypesEnabled = true;
+                newList.ContentTypes.AddExistingContentType(item);
 
-                    clientContext.Load(newList);
-                    clientContext.ExecuteQuery();
+                clientContext.Load(newList);
+                clientContext.ExecuteQuery();
 
-                    contentTypeCollection = newList.ContentTypes;
+                contentTypeCollection = newList.ContentTypes;
 
-                    clientContext.Load(contentTypeCollection);
-                    clientContext.ExecuteQuery();
+                clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
 
-                    ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
+                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
 
-                    if (targetContentType != null)
-                    {
-                        targetContentType.DeleteObject();
-                    }
+                if (targetContentType != null)
+                {
+                    targetContentType.DeleteObject();
+                }
 
-                    clientContext.Load(newList);
-                    clientContext.ExecuteQuery();
+                clientContext.Load(newList);
+                clientContext.ExecuteQuery();
 
-                    // Update the view
-                    View view = newList.Views.GetByTitle("All Items");
-                    clientContext.Load(view, v => v.ViewFields);
-                    Field name = newList.Fields.GetByInternalNameOrTitle("FirstName");
+                // Update the view
+                View view = newList.Views.GetByTitle("All Items");
+                clientContext.Load(view, v => v.ViewFields);
+                Field name = newList.Fields.GetByInternalNameOrTitle("FirstName");
 
-                    clientContext.Load(name);
-                    clientContext.ExecuteQuery();
+                clientContext.Load(name);
+                clientContext.ExecuteQuery();
 
-                    view.ViewFields.Add(name.InternalName);
-                    view.Update();
-                    clientContext.ExecuteQuery();
+                view.ViewFields.Add(name.InternalName);
+                view.Update();
+                clientContext.ExecuteQuery();
 
-                    // Execute the query to the server.
-                    clientContext.ExecuteQuery();
+                // Execute the query to the server.
+                clientContext.ExecuteQuery();
 
-                    Console.WriteLine("Finished creating list...");
+                Console.WriteLine("Finished creating list...");
             }
         }
 
         /// <summary>
-        /// Tạo 
+        /// Tạo Project list
         /// </summary>
         public static void CreateProjectList()
         {
@@ -174,9 +175,10 @@ namespace CreateSPSite
 
                     string projectNameFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Text' Name='Project Name' StaticName='ProjectName' DisplayName='Project Name' />";
                     Field projectNameField = rootWeb.Fields.AddFieldAsXml(projectNameFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
+                    projectNameField.Group = "Training";
                     item.FieldLinks.Add(new FieldLinkCreationInformation
                     {
-                        Field = projectNameField
+                        Field = projectNameField,
                     });
 
                     item.Update(false);
@@ -191,7 +193,6 @@ namespace CreateSPSite
 
                 // Access subsite
                 Web hRWeb = clientContext.Site.OpenWeb("HR");
-
 
                 // Find Employees list
                 clientContext.Load(hRWeb.Lists);
@@ -214,11 +215,19 @@ namespace CreateSPSite
                 clientContext.ExecuteQuery();
                 
                 string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + employeesList.Id + "' ShowField='Title' />";
-                Field leaderField = rootWeb.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
-                
-                leaderField = newList.Fields.Add(leaderField);
+                Field leaderField = newList.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
+                clientContext.Load(leaderField);
                 leaderField.SetShowInEditForm(true);
                 leaderField.SetShowInNewForm(true);
+                leaderField.Update();
+
+                // Add member field
+                //string memberFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Member' StaticName='Member' DisplayName='Member' List='" + employeesList.Id + "' ShowField='Title' />";
+                //Field memberField = rootWeb.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
+
+                //memberField = newList.Fields.Add(memberField);
+                //memberField.SetShowInEditForm(true);
+                //memberField.SetShowInNewForm(true);
 
                 contentTypeCollection = newList.ContentTypes;
 
@@ -231,9 +240,8 @@ namespace CreateSPSite
                 {
                     targetContentType.DeleteObject();
                 }
-                newList.Update();
-                clientContext.ExecuteQuery();
 
+                newList.Update();
 
                 // Update the view
                 View view = newList.Views.GetByTitle("All Items");
@@ -246,7 +254,6 @@ namespace CreateSPSite
                 clientContext.ExecuteQuery();
 
                 view.ViewFields.Add(name.InternalName);
-                view.ViewFields.Add(leader.InternalName);
                 view.Update();
                 clientContext.ExecuteQuery();
 
