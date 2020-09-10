@@ -42,7 +42,7 @@ namespace CreateSPSite
                     SharepointService.CreateEmployeeContentType();
                     break;
                 case ConsoleKey.D2:
-                    SharepointService.CreateProjectList();
+                    SharepointService.CreateProjectList1();
                     break;
                 case ConsoleKey.D3:
                     Console.WriteLine("You press 3");

@@ -212,10 +212,21 @@ namespace CreateSPSite
                 newList.ContentTypes.AddExistingContentType(item);
                 
                 clientContext.Load(newList);
-                clientContext.ExecuteQuery();
-                
+
+                contentTypeCollection = newList.ContentTypes;
+
+                clientContext.Load(contentTypeCollection);
+
+                // Remove Item
+                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
+
+                if (targetContentType != null)
+                {
+                    targetContentType.DeleteObject();
+                }
+
                 string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + employeesList.Id + "' ShowField='Title' />";
-                Field leaderField = newList.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
+                Field leaderField = newList.Fields.AddFieldAsXml(leaderFieldSchema, false, AddFieldOptions.AddToDefaultContentType);
                 clientContext.Load(leaderField);
                 leaderField.SetShowInEditForm(true);
                 leaderField.SetShowInNewForm(true);
@@ -228,18 +239,6 @@ namespace CreateSPSite
                 //memberField = newList.Fields.Add(memberField);
                 //memberField.SetShowInEditForm(true);
                 //memberField.SetShowInNewForm(true);
-
-                contentTypeCollection = newList.ContentTypes;
-
-                clientContext.Load(contentTypeCollection);
-                clientContext.ExecuteQuery();
-
-                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
-
-                if (targetContentType != null)
-                {
-                    targetContentType.DeleteObject();
-                }
 
                 newList.Update();
 
@@ -344,6 +343,94 @@ namespace CreateSPSite
             }
         }
 
+
+        public static void CreateProjectList1()
+        {
+            var secureString = new SecureString();
+            password.ToCharArray().ToList().ForEach(c => secureString.AppendChar(c));
+
+            using (ClientContext clientContext = new ClientContext(ITFirm))
+            {
+                clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
+                ContentTypeCollection contentTypeCollection = clientContext.Web.ContentTypes;
+
+                clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
+                Console.WriteLine("Creating list...");
+
+                ContentType item = (from contentType in contentTypeCollection where contentType.Name == "Project" select contentType).FirstOrDefault();
+
+                // Access subsite
+                Web hRWeb = clientContext.Site.OpenWeb("HR");
+
+                // Find Employees list
+                clientContext.Load(hRWeb.Lists);
+                clientContext.ExecuteQuery();
+
+                var employeesList = hRWeb.Lists.GetByTitle("Employees");
+                clientContext.Load(employeesList);
+                clientContext.ExecuteQuery();
+
+                ListCreationInformation creationInfo = new ListCreationInformation();
+                creationInfo.Title = "Projects";
+                creationInfo.Description = "New list description";
+                creationInfo.TemplateType = (int)ListTemplateType.GenericList;
+
+                List newList = hRWeb.Lists.Add(creationInfo);
+                newList.ContentTypesEnabled = true;
+                newList.ContentTypes.AddExistingContentType(item);
+
+                clientContext.Load(newList);
+
+                contentTypeCollection = newList.ContentTypes;
+
+                clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
+
+                // Remove Item
+                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
+
+                if (targetContentType != null)
+                {
+                    targetContentType.DeleteObject();
+                }
+
+                string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + employeesList.Id + "' ShowField='Title' />";
+                Field leaderField = newList.Fields.AddFieldAsXml(leaderFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
+                leaderField.SetShowInEditForm(true);
+                leaderField.SetShowInNewForm(true);
+                clientContext.Load(leaderField);
+
+                // Add member field
+                string memberFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='LookupMulti' Name='Member' StaticName='Member' DisplayName='Member' List='" + employeesList.Id + "' ShowField='Title' Mult='TRUE' />";
+                Field memberField = newList.Fields.AddFieldAsXml(memberFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
+                memberField.SetShowInEditForm(true);
+                memberField.SetShowInNewForm(true);
+                clientContext.Load(memberField);
+
+                newList.Update();
+                clientContext.ExecuteQuery();
+
+                // Update the view
+                View view = newList.Views.GetByTitle("All Items");
+                clientContext.Load(view, v => v.ViewFields);
+                Field name = newList.Fields.GetByInternalNameOrTitle("ProjectName");
+                
+                clientContext.Load(name);
+                clientContext.ExecuteQuery();
+
+                view.ViewFields.Add(name.InternalName);
+                view.ViewFields.Add(leaderField.InternalName);
+                view.ViewFields.Add(memberField.InternalName);
+                view.Update();
+                clientContext.ExecuteQuery();
+
+                // Execute the query to the server.
+                clientContext.ExecuteQuery();
+
+                Console.WriteLine("Finished creating list...");
+            }
+        }
         // TODO: Delete List
     }
 }
