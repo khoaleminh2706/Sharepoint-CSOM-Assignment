@@ -1,6 +1,7 @@
 ﻿using Microsoft.SharePoint.Client;
 using System;
 using System.Linq;
+using System.Net;
 using System.Security;
 
 namespace CreateSPSite
@@ -137,8 +138,9 @@ namespace CreateSPSite
             using (ClientContext clientContext = new ClientContext(ITFirm))
             { 
                 clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
-                                ContentTypeCollection contentTypeCollection;
-                contentTypeCollection = clientContext.Web.ContentTypes;
+                
+                Web rootWeb = clientContext.Site.RootWeb;
+                ContentTypeCollection contentTypeCollection = clientContext.Web.ContentTypes;
 
                 clientContext.Load(contentTypeCollection);
                 clientContext.ExecuteQuery();
@@ -169,16 +171,14 @@ namespace CreateSPSite
                     clientContext.ExecuteQuery();
 
                     Console.WriteLine("Add column....");
-                    Web rootWeb = clientContext.Site.RootWeb;
 
-                    string schemaTextField = "<Field ID='" + Guid.NewGuid() + "' Type='Text' Name='Project Name' StaticName='ProjectName' DisplayName='Project Name' />";
-                    Field simpleTextField = rootWeb.Fields.AddFieldAsXml(schemaTextField, false, AddFieldOptions.AddFieldInternalNameHint);
-                    clientContext.ExecuteQuery();
-
+                    string projectNameFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Text' Name='Project Name' StaticName='ProjectName' DisplayName='Project Name' />";
+                    Field projectNameField = rootWeb.Fields.AddFieldAsXml(projectNameFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
                     item.FieldLinks.Add(new FieldLinkCreationInformation
                     {
-                        Field = simpleTextField
+                        Field = projectNameField
                     });
+
                     item.Update(false);
                     clientContext.ExecuteQuery();
 
@@ -192,6 +192,15 @@ namespace CreateSPSite
                 // Access subsite
                 Web hRWeb = clientContext.Site.OpenWeb("HR");
 
+
+                // Find Employees list
+                clientContext.Load(hRWeb.Lists);
+                clientContext.ExecuteQuery();
+
+                var employeesList = hRWeb.Lists.GetByTitle("Employees");
+                clientContext.Load(employeesList);
+                clientContext.ExecuteQuery();
+
                 ListCreationInformation creationInfo = new ListCreationInformation();
                 creationInfo.Title = "Projects";
                 creationInfo.Description = "New list description";
@@ -200,9 +209,16 @@ namespace CreateSPSite
                 List newList = hRWeb.Lists.Add(creationInfo);
                 newList.ContentTypesEnabled = true;
                 newList.ContentTypes.AddExistingContentType(item);
-
+                
                 clientContext.Load(newList);
                 clientContext.ExecuteQuery();
+                
+                string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + employeesList.Id + "' ShowField='Title' />";
+                Field leaderField = rootWeb.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
+                
+                leaderField = newList.Fields.Add(leaderField);
+                leaderField.SetShowInEditForm(true);
+                leaderField.SetShowInNewForm(true);
 
                 contentTypeCollection = newList.ContentTypes;
 
@@ -215,19 +231,22 @@ namespace CreateSPSite
                 {
                     targetContentType.DeleteObject();
                 }
-
-                clientContext.Load(newList);
+                newList.Update();
                 clientContext.ExecuteQuery();
+
 
                 // Update the view
                 View view = newList.Views.GetByTitle("All Items");
                 clientContext.Load(view, v => v.ViewFields);
                 Field name = newList.Fields.GetByInternalNameOrTitle("ProjectName");
+                Field leader = newList.Fields.GetByInternalNameOrTitle("Leader");
 
                 clientContext.Load(name);
+                clientContext.Load(leader);
                 clientContext.ExecuteQuery();
 
                 view.ViewFields.Add(name.InternalName);
+                view.ViewFields.Add(leader.InternalName);
                 view.Update();
                 clientContext.ExecuteQuery();
 
@@ -317,5 +336,7 @@ namespace CreateSPSite
                 }
             }
         }
+
+        // TODO: Delete List
     }
 }

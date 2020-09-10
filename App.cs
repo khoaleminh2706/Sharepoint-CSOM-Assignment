@@ -20,7 +20,6 @@ namespace CreateSPSite
                 Update(); 
             }
             Console.WriteLine("Exiting...");
-            Thread.Sleep(2000);
         }
 
         private void Update()
@@ -47,6 +46,7 @@ namespace CreateSPSite
                     break;
                 case ConsoleKey.D3:
                     Console.WriteLine("You press 3");
+                    // TODO: Delete Project Documents
                     break;
                 case ConsoleKey.D4:
                     // Delete content type by name
