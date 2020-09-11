@@ -1,8 +1,7 @@
-﻿using Microsoft.SharePoint.Client;
+﻿using Microsoft.Online.SharePoint.TenantAdministration;
+using Microsoft.SharePoint.Client;
 using System;
 using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
 using System.Security;
 
 namespace CreateSPSite
@@ -112,12 +111,12 @@ namespace CreateSPSite
                 // Update the view
                 View view = newList.Views.GetByTitle("All Items");
                 clientContext.Load(view, v => v.ViewFields);
-                Field name = newList.Fields.GetByInternalNameOrTitle("FirstName");
+                Field firstName = newList.Fields.GetByInternalNameOrTitle("FirstName");
 
-                clientContext.Load(name);
+                clientContext.Load(firstName);
                 clientContext.ExecuteQuery();
 
-                view.ViewFields.Add(name.InternalName);
+                view.ViewFields.Add(firstName.InternalName);
                 view.Update();
                 clientContext.ExecuteQuery();
 
@@ -125,6 +124,109 @@ namespace CreateSPSite
                 clientContext.ExecuteQuery();
 
                 Console.WriteLine("Finished creating list...");
+            }
+        }
+
+        public static string CreateSite(string adminSiteUrl, string rootSiteUrl, string siteTitle, string siteUrl)
+        {
+            var secureString = new SecureString();
+            password.ToCharArray().ToList().ForEach(c => secureString.AppendChar(c));
+            
+            siteUrl = rootSiteUrl + "/sites/" + siteUrl;
+
+            using (ClientContext clientContext = new ClientContext(adminSiteUrl))
+            {
+                clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
+
+                #region Create Site
+                try
+                {
+                    var tenant = new Tenant(clientContext);
+                    var siteCreationProperties = new SiteCreationProperties
+                    {
+
+                        //New SiteCollection Url
+                        Url = siteUrl,
+
+                        //Title of the Root Site
+                        Title = siteTitle,
+
+                        //Login name of Owner
+                        Owner = loginName,
+
+                        //Template of the Root Site. Using Team Site for now.
+                        // BLANKINTERNETCONTAINER#0 STS#0
+                        Template = "BLANKINTERNETCONTAINER#0",
+
+                        //Storage Limit in MB
+                        StorageMaximumLevel = 5,
+
+                        TimeZoneId = 7
+                    };
+
+                    //Create the SiteCollection
+                    SpoOperation spo = tenant.CreateSite(siteCreationProperties);
+
+                    clientContext.Load(spo);
+                    Console.WriteLine("Start creating site...");
+                    clientContext.ExecuteQuery();
+
+                    //Check if provisioning of the SiteCollection is complete.
+                    while (!spo.IsComplete)
+                    {
+                        //Wait for 30 seconds and then try again
+                        System.Threading.Thread.Sleep(30000);
+                        //spo.RefreshLoad();
+                        clientContext.Load(spo);
+                        Console.WriteLine("Sau 30 giây....");
+                        clientContext.ExecuteQuery();
+                    }
+
+                    Console.WriteLine("Site Created.");
+                    
+                    Console.WriteLine("Creating HR subsite");
+
+                    // Get new create web
+                    var subclientContext = new ClientContext(siteUrl);
+                    subclientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
+
+                    WebCreationInformation webCreationInfo = new WebCreationInformation
+                    {
+                        Url = "HR",
+                        Title = "HR Department",
+                        Description = "Subsite for HR",
+                        UseSamePermissionsAsParentSite = true,
+                        WebTemplate  = "STS#0",
+                        Language = 1033,
+                        
+                    };
+                    subclientContext.Site.RootWeb.Webs.Add(webCreationInfo);
+                    subclientContext.ExecuteQuery();
+
+                    // add HR site link to quick lauch menu
+                    var quickLaunchNav = subclientContext.Web.Navigation.QuickLaunch;
+                    subclientContext.Load(subclientContext.Web);
+                    subclientContext.Load(quickLaunchNav);
+                    subclientContext.ExecuteQuery();
+
+                    NavigationNodeCreationInformation newNode = new NavigationNodeCreationInformation
+                    {
+                        Title = "HR",
+                        Url = siteUrl + "/HR",
+                        AsLastNode = true
+                    };
+                    subclientContext.Load(quickLaunchNav.Add(newNode));
+                    subclientContext.ExecuteQuery();
+
+                    Console.WriteLine("Finising creating HR subsite...");
+                    return siteUrl;
+                }
+                catch (ServerException ex)
+                {
+                    Console.WriteLine($"Lỗi: {ex.Message}");
+                    return null;
+                }
+                #endregion
             }
         }
 
@@ -484,7 +586,6 @@ namespace CreateSPSite
             }
         }
 
-
         public static void CreateProjectList1()
         {
             var secureString = new SecureString();
@@ -572,6 +673,5 @@ namespace CreateSPSite
                 Console.WriteLine("Finished creating list...");
             }
         }
-        // TODO: Delete List
     }
 }
