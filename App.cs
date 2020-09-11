@@ -45,7 +45,8 @@ namespace CreateSPSite
                     SharepointService.CreateProjectList1();
                     break;
                 case ConsoleKey.D3:
-                    Console.WriteLine("You press 3");
+                    Console.WriteLine("Create Document list");
+                    SharepointService.CreateDocumentList();
                     // TODO: Delete Project Documents
                     break;
                 case ConsoleKey.D4:

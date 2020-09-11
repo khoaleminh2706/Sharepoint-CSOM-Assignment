@@ -194,10 +194,6 @@ namespace CreateSPSite
                 // Access subsite
                 Web hRWeb = clientContext.Site.OpenWeb("HR");
 
-                // Find Employees list
-                clientContext.Load(hRWeb.Lists);
-                clientContext.ExecuteQuery();
-
                 var employeesList = hRWeb.Lists.GetByTitle("Employees");
                 clientContext.Load(employeesList);
                 clientContext.ExecuteQuery();
@@ -210,12 +206,13 @@ namespace CreateSPSite
                 List newList = hRWeb.Lists.Add(creationInfo);
                 newList.ContentTypesEnabled = true;
                 newList.ContentTypes.AddExistingContentType(item);
-                
+
                 clientContext.Load(newList);
 
                 contentTypeCollection = newList.ContentTypes;
 
                 clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
 
                 // Remove Item
                 ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
@@ -226,33 +223,32 @@ namespace CreateSPSite
                 }
 
                 string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + employeesList.Id + "' ShowField='Title' />";
-                Field leaderField = newList.Fields.AddFieldAsXml(leaderFieldSchema, false, AddFieldOptions.AddToDefaultContentType);
-                clientContext.Load(leaderField);
+                Field leaderField = newList.Fields.AddFieldAsXml(leaderFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
                 leaderField.SetShowInEditForm(true);
                 leaderField.SetShowInNewForm(true);
-                leaderField.Update();
+                clientContext.Load(leaderField);
 
                 // Add member field
-                //string memberFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Member' StaticName='Member' DisplayName='Member' List='" + employeesList.Id + "' ShowField='Title' />";
-                //Field memberField = rootWeb.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
-
-                //memberField = newList.Fields.Add(memberField);
-                //memberField.SetShowInEditForm(true);
-                //memberField.SetShowInNewForm(true);
+                string memberFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='LookupMulti' Name='Member' StaticName='Member' DisplayName='Member' List='" + employeesList.Id + "' ShowField='Title' Mult='TRUE' />";
+                Field memberField = newList.Fields.AddFieldAsXml(memberFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
+                memberField.SetShowInEditForm(true);
+                memberField.SetShowInNewForm(true);
+                clientContext.Load(memberField);
 
                 newList.Update();
+                clientContext.ExecuteQuery();
 
                 // Update the view
                 View view = newList.Views.GetByTitle("All Items");
                 clientContext.Load(view, v => v.ViewFields);
                 Field name = newList.Fields.GetByInternalNameOrTitle("ProjectName");
-                Field leader = newList.Fields.GetByInternalNameOrTitle("Leader");
-
+                
                 clientContext.Load(name);
-                clientContext.Load(leader);
                 clientContext.ExecuteQuery();
 
                 view.ViewFields.Add(name.InternalName);
+                view.ViewFields.Add(leaderField.InternalName);
+                view.ViewFields.Add(memberField.InternalName);
                 view.Update();
                 clientContext.ExecuteQuery();
 
@@ -287,6 +283,151 @@ namespace CreateSPSite
                 targetContentType.DeleteObject();
 
                 clientContext.ExecuteQuery();
+            }
+        }
+
+        public static void CreateDocumentList()
+        {
+            var secureString = new SecureString();
+            password.ToCharArray().ToList().ForEach(c => secureString.AppendChar(c));
+
+             using (ClientContext clientContext = new ClientContext(ITFirm))
+            { 
+                clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
+                
+                Web rootWeb = clientContext.Site.RootWeb;
+                ContentTypeCollection contentTypeCollection = clientContext.Web.ContentTypes;
+
+                clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
+
+                ContentType newContentType = (from contentType in contentTypeCollection where contentType.Name == "Project Document" select contentType).FirstOrDefault();
+
+                if (newContentType != null)
+                {
+                    Console.WriteLine("Content type already exists....");
+                }
+                else
+                {
+                    Console.WriteLine("Start creating content type.");
+
+                    ContentType parentContentType = (from contentType in contentTypeCollection where contentType.Name == "Document" select contentType).FirstOrDefault();
+
+                    ContentTypeCreationInformation contentTypeCreationInformation = new ContentTypeCreationInformation
+                    {
+                        Name = "Project Document",
+                        // Description of the new content type
+                        Description = "Project Document",
+
+                        // Name of the group under which the new content type will be creted
+                        Group = "Training",
+                        ParentContentType = parentContentType
+                    };
+
+                    newContentType = contentTypeCollection.Add(contentTypeCreationInformation);
+
+                    clientContext.Load(newContentType);
+                    clientContext.ExecuteQuery();
+
+                    Console.WriteLine("Add column....");
+
+                    Field targetField = clientContext.Web.AvailableFields.GetByInternalNameOrTitle("Description");
+
+                    FieldLinkCreationInformation fldLink = new FieldLinkCreationInformation();
+                    fldLink.Field = targetField;
+
+                    // If uou set this to "true", the column getting added to the content type will be added as "required" field
+                    fldLink.Field.Required = false;
+
+                    // If you set this to "true", the column getting added to the content type will be added as "hidden" field
+                    fldLink.Field.Hidden = false;
+
+                    newContentType.FieldLinks.Add(fldLink);
+                    newContentType.Update(false);
+                    clientContext.ExecuteQuery();
+
+                    string projectNameFieldSchema = @"<Field ID='" + Guid.NewGuid() + "' Type='Choice' Name='DocType' StaticName='DocType' DisplayName='Document Type' Format='Dropdown' Group='Training' FillInChoice='FALSE' >" 
+                        + "<Default>Business requirement</Default>"
+                        +"<CHOICES>" 
+                        + "<CHOICE>Business requirement</CHOICE>" 
+                        + "<CHOICE>Technical document</CHOICE>" 
+                        + "<CHOICE>User guide</CHOICE></CHOICES></Field>";
+                    Field projectNameField = rootWeb.Fields.AddFieldAsXml(projectNameFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
+                    newContentType.FieldLinks.Add(new FieldLinkCreationInformation
+                    {
+                        Field = projectNameField,
+                    });
+
+                    newContentType.Update(false);
+                    clientContext.ExecuteQuery();
+
+                    Console.WriteLine("Add column finished....");
+
+                    Console.WriteLine("Finish creating Content Type");
+                }
+
+                Console.WriteLine("Creating list...");
+
+                // Access subsite
+                Web hRWeb = clientContext.Site.OpenWeb("HR");
+
+                var projectList = hRWeb.Lists.GetByTitle("Projects");
+                clientContext.Load(projectList);
+                clientContext.ExecuteQuery();
+
+                ListCreationInformation creationInfo = new ListCreationInformation();
+                creationInfo.Title = "Project Documents";
+                creationInfo.Description = "Projects Doc Library";
+                creationInfo.TemplateType = (int)ListTemplateType.DocumentLibrary;
+
+                List projDocList = hRWeb.Lists.Add(creationInfo);
+                projDocList.ContentTypesEnabled = true;
+                projDocList.ContentTypes.AddExistingContentType(newContentType);
+
+                clientContext.Load(projDocList);
+
+                contentTypeCollection = projDocList.ContentTypes;
+
+                clientContext.Load(contentTypeCollection);
+                clientContext.ExecuteQuery();
+
+                // Remove Item
+                //ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Document" select contentType).FirstOrDefault();
+
+                //if (targetContentType != null)
+                //{
+                //    targetContentType.DeleteObject();
+                //}
+
+                string projFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Proj' StaticName='Proj' DisplayName='Project' List='" + projectList.Id + "' ShowField='Title' />";
+                Field projField = projDocList.Fields.AddFieldAsXml(projFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
+                projField.SetShowInEditForm(true);
+                projField.SetShowInNewForm(true);
+                clientContext.Load(projField);
+
+                projDocList.Update();
+                clientContext.ExecuteQuery();
+
+                // Update the view
+                View view = projDocList.Views.GetByTitle("All Documents");
+                clientContext.Load(view, v => v.ViewFields);
+                Field desc = projDocList.Fields.GetByInternalNameOrTitle("Description");
+                Field doctype = projDocList.Fields.GetByInternalNameOrTitle("DocType");
+                
+                clientContext.Load(desc);
+                clientContext.Load(doctype);
+                clientContext.ExecuteQuery();
+
+                view.ViewFields.Add(desc.InternalName);
+                view.ViewFields.Add(doctype.InternalName);
+                view.ViewFields.Add(projField.InternalName);
+                view.Update();
+                clientContext.ExecuteQuery();
+
+                // Execute the query to the server.
+                clientContext.ExecuteQuery();
+
+                Console.WriteLine("Finished creating list...");
             }
         }
 
