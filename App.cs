@@ -26,7 +26,11 @@ namespace CreateSPSite
         {
             Console.WriteLine("Welcome...");
             Console.WriteLine("Please select 1 action");
-            Console.WriteLine("[1] Create Employees list [2] Create Project list [3] Create Project Document list [Esc or Ctrl-C] Exit");
+            Console.WriteLine("[1] Create Employees list");
+            Console.WriteLine("[2] Create Project list");
+            Console.WriteLine("[3] Create Project Document list");
+            Console.WriteLine("[4] Create Site");
+            Console.WriteLine("[Esc or Ctrl-C] Exit");
             _key = Console.ReadKey();
 
             // xuống 1 dòng
@@ -48,20 +52,17 @@ namespace CreateSPSite
                     Console.WriteLine("You press 3");
                     // TODO: Delete Project Documents
                     break;
-                case ConsoleKey.D4:
-                    // Delete content type by name
-                    SharepointService.DeleteContentType("Employee1");
-                    break;
-                case ConsoleKey.D5:
-                    // Delete content type by name
-                    SharepointService.FindContentTypeAssoc("Employee1");
-                    break;
                 case ConsoleKey.Escape:
                     _over = true;
                     break;
                 default:
                     return;
             }
+        }
+
+        private void HandleCreateList(string listName)
+        {
+
         }
     }
 }

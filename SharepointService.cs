@@ -89,6 +89,15 @@ namespace CreateSPSite
 
                 List newList = hRWeb.Lists.Add(creationInfo);
                 newList.ContentTypesEnabled = true;
+
+                // Delete Item Content Type
+                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
+                if (targetContentType != null)
+                {
+                    targetContentType.DeleteObject();
+                }
+
+                // Add content type
                 newList.ContentTypes.AddExistingContentType(item);
 
                 clientContext.Load(newList);
@@ -98,13 +107,6 @@ namespace CreateSPSite
 
                 clientContext.Load(contentTypeCollection);
                 clientContext.ExecuteQuery();
-
-                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
-
-                if (targetContentType != null)
-                {
-                    targetContentType.DeleteObject();
-                }
 
                 clientContext.Load(newList);
                 clientContext.ExecuteQuery();
