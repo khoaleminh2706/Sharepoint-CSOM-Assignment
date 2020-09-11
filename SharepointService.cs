@@ -12,13 +12,13 @@ namespace CreateSPSite
         private const string password = "P3t3rLeMinh";
         const string ITFirm = "https://khoaleminh.sharepoint.com/sites/newsite1";
 
-        public static void CreateEmployeeContentType()
+        public static void CreateEmployeeContentType(string siteUrl)
         {
             Console.WriteLine("Create Employees list");
             var secureString = new SecureString();
             password.ToCharArray().ToList().ForEach(c => secureString.AppendChar(c));
 
-            using (ClientContext clientContext = new ClientContext(ITFirm))
+            using (ClientContext clientContext = new ClientContext(siteUrl))
             {
                 clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
 
@@ -198,24 +198,21 @@ namespace CreateSPSite
                         UseSamePermissionsAsParentSite = true,
                         WebTemplate  = "STS#0",
                         Language = 1033,
-                        
                     };
                     subclientContext.Site.RootWeb.Webs.Add(webCreationInfo);
                     subclientContext.ExecuteQuery();
 
                     // add HR site link to quick lauch menu
                     var quickLaunchNav = subclientContext.Web.Navigation.QuickLaunch;
-                    subclientContext.Load(subclientContext.Web);
-                    subclientContext.Load(quickLaunchNav);
-                    subclientContext.ExecuteQuery();
-
+                    
                     NavigationNodeCreationInformation newNode = new NavigationNodeCreationInformation
                     {
                         Title = "HR",
                         Url = siteUrl + "/HR",
                         AsLastNode = true
                     };
-                    subclientContext.Load(quickLaunchNav.Add(newNode));
+                    quickLaunchNav.Add(newNode);
+                    subclientContext.Load(quickLaunchNav);
                     subclientContext.ExecuteQuery();
 
                     Console.WriteLine("Finising creating HR subsite...");
@@ -361,33 +358,6 @@ namespace CreateSPSite
             }
         }
 
-        /// <summary>
-        /// Delete Content Type by Title
-        /// </summary>
-        /// <param name="name"></param>
-        public static void DeleteContentType(string name)
-        {
-            var secureString = new SecureString();
-            password.ToCharArray().ToList().ForEach(c => secureString.AppendChar(c));
-
-            using (ClientContext clientContext = new ClientContext(ITFirm))
-            {
-                 clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
-                ContentTypeCollection oContentTypeCollection = clientContext.Web.ContentTypes;
-
-                // Load content type collection
-                clientContext.Load(oContentTypeCollection);
-                clientContext.ExecuteQuery();
-
-                ContentType targetContentType = (from contentType in oContentTypeCollection where contentType.Name == name select contentType).FirstOrDefault();
-
-                // Delete Content Type
-                targetContentType.DeleteObject();
-
-                clientContext.ExecuteQuery();
-            }
-        }
-
         public static void CreateDocumentList()
         {
             var secureString = new SecureString();
@@ -530,59 +500,6 @@ namespace CreateSPSite
                 clientContext.ExecuteQuery();
 
                 Console.WriteLine("Finished creating list...");
-            }
-        }
-
-        public static void FindContentTypeAssoc(string name)
-        {
-            var secureString = new SecureString();
-            password.ToCharArray().ToList().ForEach(c => secureString.AppendChar(c));
-
-            using (ClientContext clientContext = new ClientContext(ITFirm))
-            {
-                clientContext.Credentials = new SharePointOnlineCredentials(loginName, secureString);
-                ContentTypeCollection contentTypeColl = clientContext.Web.ContentTypes;
-
-                clientContext.Load(contentTypeColl);
-                clientContext.Load(clientContext.Web);
-                clientContext.Load(clientContext.Web.Lists);
-                clientContext.Load(clientContext.Web.Webs);
-                clientContext.ExecuteQuery();
-
-                foreach (var list in clientContext.Web.Lists)
-                {
-                    clientContext.Load(list.ContentTypes);
-                    clientContext.ExecuteQuery();
-
-                    var targetContentType = (from contentType in contentTypeColl where contentType.Name == name select contentType).FirstOrDefault();
-                    if (targetContentType != null)
-                    {
-                        Console.WriteLine("Found at " + list.Title);
-                    }
-                }
-
-                if (clientContext.Web.Webs.Count > 0)
-                {
-                    foreach (var web in clientContext.Web.Webs)
-                    {
-                        contentTypeColl = web.ContentTypes;
-                        clientContext.Load(contentTypeColl);
-                        clientContext.Load(web.Lists);
-                        clientContext.ExecuteQuery();
-
-                        foreach (var list in web.Lists)
-                        {
-                            clientContext.Load(list.ContentTypes);
-                            clientContext.ExecuteQuery();
-
-                            var targetContentType = (from contentType in contentTypeColl where contentType.Name == name select contentType).FirstOrDefault();
-                            if (targetContentType != null)
-                            {
-                                Console.WriteLine("Found at " + list.Title);
-                            }
-                        }
-                    }
-                }
             }
         }
 

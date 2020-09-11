@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace CreateSPSite
@@ -7,6 +8,9 @@ namespace CreateSPSite
     {
         private bool _over;
         private ConsoleKeyInfo _key;
+        private string loginName;
+        private string password;
+        private string ITFirm;
 
         public App(bool over)
         {
@@ -15,6 +19,7 @@ namespace CreateSPSite
 
         public void Run()
         {
+            Console.WriteLine("");
             while (!_over)
             {
                 Update(); 
@@ -26,7 +31,12 @@ namespace CreateSPSite
         {
             Console.WriteLine("Welcome...");
             Console.WriteLine("Please select 1 action");
-            Console.WriteLine("[1] Create Employees list [2] Create Project list [3] Create Project Document list [4] Create a site and all list [Esc or Ctrl-C] Exit");
+            Console.WriteLine("[1] Create Employees list");
+            Console.WriteLine("[2] Create Project list");
+            Console.WriteLine("[3] Create Project Document list");
+            Console.WriteLine("[4] Create a site and all list");
+            Console.WriteLine("[C] Change Site Url");
+            Console.WriteLine("[Esc or Ctrl-C] Exit");
             _key = Console.ReadKey();
 
             // xuống 1 dòng
@@ -60,7 +70,10 @@ namespace CreateSPSite
 
         private void HandleOption1()
         {
-            SharepointService.CreateEmployeeContentType();
+            Console.WriteLine("Create Employees list");
+            Console.WriteLine("Please insert website url");
+            string siteUrl = Console.ReadLine();
+            SharepointService.CreateEmployeeContentType(siteUrl);
         }
 
         private void HandleOption2()
