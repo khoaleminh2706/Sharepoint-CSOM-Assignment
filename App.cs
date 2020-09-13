@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
+using CreateSPSite.Factories;
 using CreateSPSite.Models;
 using CreateSPSite.Services;
 
@@ -13,6 +13,7 @@ namespace CreateSPSite
         private string _password;
         private string _siteUrl;
         private SPClientContextProvider _provider;
+        private ContentTypeFactory _contentTypeFactory;
 
         public App(bool over)
         {
@@ -32,6 +33,7 @@ namespace CreateSPSite
             _siteUrl = Console.ReadLine();
 
             _provider = new SPClientContextProvider(_loginName, _password, _siteUrl);
+            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
 
             while (!_over)
             {
@@ -61,10 +63,18 @@ namespace CreateSPSite
             switch (key.Key)
             {
                 case ConsoleKey.D1:
-                    SharepointService.CreateEmployeeContentType();
+                    try
+                    {
+                        _contentTypeFactory.GetContentType(Constants.ConteType.Employee);
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine("Chương trình bị lỗi");
+                        Console.WriteLine(ex.Message);
+                    }
                     break;
                 case ConsoleKey.D2:
-                    SharepointService.CreateProjectList1();
+                    //SharepointService.CreateProjectList1();
                     break;
                 case ConsoleKey.D3:
                     Console.WriteLine("You press 3");

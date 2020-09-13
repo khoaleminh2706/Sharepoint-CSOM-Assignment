@@ -89,6 +89,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Factories\ContentTypeFactory.cs" />
+    <Compile Include="Models\AbstractContentType.cs" />
+    <Compile Include="Models\EmployeeContentType.cs" />
     <Compile Include="Models\SPClientContextProvider.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
