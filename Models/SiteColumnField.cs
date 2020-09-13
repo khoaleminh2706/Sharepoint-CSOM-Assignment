@@ -13,7 +13,7 @@ namespace CreateSPSite.Models
 
         public override void Create()
         {
-            if (TargetContentType == null) throw new Exception("Cần cung cấp content type"); ;
+            if (TargetContentType == null) throw new Exception("Cần cung cấp content type");
             
             Field targetField = GetField();
 

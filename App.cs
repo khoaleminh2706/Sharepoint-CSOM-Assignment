@@ -97,7 +97,7 @@ namespace CreateSPSite
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Chương trình bị lỗi");
+                Console.Write("Lỗi: ");
                 Console.WriteLine(ex.Message);
             }
         }

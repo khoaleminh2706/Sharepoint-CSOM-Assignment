@@ -94,6 +94,7 @@
     <Compile Include="Models\AbstractContentType.cs" />
     <Compile Include="Models\AbstractField.cs" />
     <Compile Include="Models\EmployeeContentType.cs" />
+    <Compile Include="Models\NewColumnField.cs" />
     <Compile Include="Models\ProjectContentType.cs" />
     <Compile Include="Models\ProjectDocContentType.cs" />
     <Compile Include="Models\SiteColumnField.cs" />

@@ -20,16 +20,15 @@ namespace CreateSPSite.Factories
             {
                 case Constants.ContentType.Employee:
                     _model = new EmployeeContentType(_context);
-                    var result = _model.Create();
-                    _model.CreateFields(result);
+                    _model.CreateFields(_model.Create());
                     break;
                 case Constants.ContentType.Project:
                     _model = new ProjectContentType(_context);
-                    _model.Create();
+                    _model.CreateFields(_model.Create());
                     break;
                 case Constants.ContentType.ProjectDoc:
                     _model = new ProjectDocContentType(_context);
-                    _model.Create();
+                    _model.CreateFields(_model.Create());
                     break;
                 default:
                     throw new Exception("Chương trình Không hỗ trợ content type này");
