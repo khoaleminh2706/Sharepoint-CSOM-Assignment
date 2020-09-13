@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using CreateSPSite.Factories;
 using CreateSPSite.Models;
 using CreateSPSite.Services;
@@ -83,7 +84,7 @@ namespace CreateSPSite
                         // TODO: Create Site and Sub site
                         break;
                     case ConsoleKey.D5:
-                        // TODO: allow changing site url
+                        HandleChangeUrl();
                         break;
                     case ConsoleKey.Escape:
                         _over = true;
@@ -99,9 +100,12 @@ namespace CreateSPSite
             }
         }
 
-        private void HandleCreateList(string listName)
+        private void HandleChangeUrl()
         {
-            var context = _provider.Create();
+            Console.Write("Nhập link mới: ");
+            _siteUrl = Console.ReadLine();
+            _provider.SiteUrl = _siteUrl;
+            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
         }
     }
 }
