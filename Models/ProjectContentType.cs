@@ -8,10 +8,5 @@ namespace CreateSPSite.Models
         {
             Name = "Project";
         }
-
-        public override void Create()
-        {
-            base.Create();
-        }
     }
 }

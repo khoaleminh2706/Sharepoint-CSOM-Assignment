@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using System.Collections.Generic;
 
 namespace CreateSPSite.Models
 {
@@ -7,11 +8,10 @@ namespace CreateSPSite.Models
         public EmployeeContentType(ClientContext clientContext): base(clientContext)
         {
             Name = "Employee";
-        }
-
-        public override void Create()
-        {
-            base.Create();
+            FieldsList = new List<AbstractField>()
+            {
+                new SiteColumnField(clientContext) { InternalName = "FirstName" }
+            };
         }
     }
 }

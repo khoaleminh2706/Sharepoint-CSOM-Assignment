@@ -50,7 +50,8 @@ namespace CreateSPSite
             Console.WriteLine("[2] Create Project list");
             Console.WriteLine("[3] Create Project Document list");
             Console.WriteLine("[4] Create Site");
-            Console.WriteLine("[5] Change Site Url");
+            Console.WriteLine("[5] Current Url");
+            Console.WriteLine("[6] Change Site Url");
             Console.WriteLine("[Esc or Ctrl-C] Exit");
             _key = Console.ReadKey();
 
@@ -84,6 +85,9 @@ namespace CreateSPSite
                         // TODO: Create Site and Sub site
                         break;
                     case ConsoleKey.D5:
+                        Console.WriteLine(_provider.SiteUrl);
+                        break;
+                    case ConsoleKey.D6:
                         HandleChangeUrl();
                         break;
                     case ConsoleKey.Escape:

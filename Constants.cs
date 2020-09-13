@@ -8,5 +8,11 @@
             public const string Project = "Project";
             public const string ProjectDoc = "Project Document";
         }
+
+        public static class FieldType
+        {
+            public const string SiteColumn = "SiteColumn";
+            public const string NewColumn = "NewColumn";
+        }
     }
 }

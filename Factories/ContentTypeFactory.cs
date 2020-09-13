@@ -20,7 +20,8 @@ namespace CreateSPSite.Factories
             {
                 case Constants.ContentType.Employee:
                     _model = new EmployeeContentType(_context);
-                    _model.Create();
+                    var result = _model.Create();
+                    _model.CreateFields(result);
                     break;
                 case Constants.ContentType.Project:
                     _model = new ProjectContentType(_context);

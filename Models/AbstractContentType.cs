@@ -1,5 +1,6 @@
 ﻿using Microsoft.SharePoint.Client;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CreateSPSite.Models
@@ -10,13 +11,14 @@ namespace CreateSPSite.Models
         public string Name { get; set; }
         public string Description { get; set; } = "New Custom Content Type";
         public string Group { get; set; } = "Training";
+        public List<AbstractField> FieldsList { get; set; }
 
         public AbstractContentType(ClientContext context)
         {
             _context = context;
         }
 
-        public virtual void Create()
+        public virtual ContentType Create()
         {
             ContentTypeCollection contentTypeColl = _context.Web.ContentTypes;
             _context.Load(contentTypeColl);
@@ -34,10 +36,7 @@ namespace CreateSPSite.Models
                 ContentTypeCreationInformation contentTypeCreationInformation = new ContentTypeCreationInformation
                 {
                     Name = Name,
-                    // Description of the new content type
                     Description = Description,
-
-                    // Name of the group under which the new content type will be creted
                     Group = Group
                 };
 
@@ -45,6 +44,7 @@ namespace CreateSPSite.Models
 
                 _context.Load(targetContentType);
                 _context.ExecuteQuery();
+                return targetContentType;
             }
         }
 
@@ -55,6 +55,16 @@ namespace CreateSPSite.Models
                 where contentType.Name == Name 
                 select contentType)
                 .FirstOrDefault();
+        }
+
+        public void CreateFields(ContentType targetContextType)
+        {
+            if (FieldsList != null && FieldsList.Count != 0)
+                FieldsList.ForEach(field =>
+                {
+                    field.TargetContentType = targetContextType;
+                    field.Create();
+                });
         }
 
         public void Dispose()
