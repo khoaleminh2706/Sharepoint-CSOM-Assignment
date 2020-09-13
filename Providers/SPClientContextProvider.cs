@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Security;
 
-namespace CreateSPSite.Models
+namespace CreateSPSite.Provider
 {
     public sealed class SPClientContextProvider
     {
@@ -29,8 +29,10 @@ namespace CreateSPSite.Models
             return _context;
         }
 
+        #region Properties
         public string SiteUrl { get; set; }
         public string LoginName { get; set; }
         public string Password { get; set; }
+        #endregion
     }
 }

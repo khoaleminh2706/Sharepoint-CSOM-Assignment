@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Security.Cryptography;
 using CreateSPSite.Factories;
-using CreateSPSite.Models;
-using CreateSPSite.Services;
+using CreateSPSite.Provider;
 
 namespace CreateSPSite
 {

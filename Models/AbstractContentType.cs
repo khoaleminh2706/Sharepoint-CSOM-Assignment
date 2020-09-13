@@ -8,16 +8,13 @@ namespace CreateSPSite.Models
     public abstract class AbstractContentType: IDisposable
     {
         private ClientContext _context;
-        public string Name { get; set; }
-        public string Description { get; set; } = "New Custom Content Type";
-        public string Group { get; set; } = "Training";
-        public List<AbstractField> FieldsList { get; set; }
 
         public AbstractContentType(ClientContext context)
         {
             _context = context;
         }
 
+        #region Methods
         public virtual ContentType Create()
         {
             ContentTypeCollection contentTypeColl = _context.Web.ContentTypes;
@@ -71,5 +68,13 @@ namespace CreateSPSite.Models
         {
             _context.Dispose();
         }
+        #endregion
+
+        #region Properties
+        public string Name { get; set; }
+        public string Description { get; set; } = "New Custom Content Type";
+        public string Group { get; set; } = "Training";
+        public List<AbstractField> FieldsList { get; set; }
+        #endregion
     }
 }

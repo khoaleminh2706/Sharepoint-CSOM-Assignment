@@ -8,7 +8,8 @@ namespace CreateSPSite.Models
         public SiteColumnField(
             ClientContext clientContext)
             :base(clientContext)
-        {}
+        {
+        }
 
         public override void Create()
         {
