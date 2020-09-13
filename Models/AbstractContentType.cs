@@ -4,13 +4,12 @@ using System.Linq;
 
 namespace CreateSPSite.Models
 {
-    public abstract class AbstractContentType
+    public abstract class AbstractContentType: IDisposable
     {
         private ClientContext _context;
         public string Name { get; set; }
         public string Description { get; set; } = "New Custom Content Type";
         public string Group { get; set; } = "Training";
-        public string Parent { get; set; } = "Item";
 
         public AbstractContentType(ClientContext context)
         {
@@ -42,7 +41,6 @@ namespace CreateSPSite.Models
                     Group = Group
                 };
 
-
                 targetContentType = contentTypeColl.Add(contentTypeCreationInformation);
 
                 _context.Load(targetContentType);
@@ -57,6 +55,11 @@ namespace CreateSPSite.Models
                 where contentType.Name == Name 
                 select contentType)
                 .FirstOrDefault();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
         }
     }
 }
