@@ -76,9 +76,9 @@ namespace CreateSPSite
                         Console.WriteLine("Finish creating project...");
                         break;
                     case ConsoleKey.D3:
-                        Console.WriteLine("Start creating project...");
+                        Console.WriteLine("Start creating project document...");
                         _contentTypeFactory.GetContentType(Constants.ContentType.ProjectDoc);
-                        Console.WriteLine("Finish creating project...");
+                        Console.WriteLine("Finish creating project document...");
                         break;
                     case ConsoleKey.D4:
                         // TODO: Create Site and Sub site
