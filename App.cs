@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Threading;
+using System.Runtime.InteropServices;
+using CreateSPSite.Models;
+using CreateSPSite.Services;
 
 namespace CreateSPSite
 {
@@ -7,6 +9,10 @@ namespace CreateSPSite
     {
         private bool _over;
         private ConsoleKeyInfo _key;
+        private string _loginName;
+        private string _password;
+        private string _siteUrl;
+        private SPClientContextProvider _provider;
 
         public App(bool over)
         {
@@ -15,6 +21,18 @@ namespace CreateSPSite
 
         public void Run()
         {
+            // TODO: allow changing url
+            Console.WriteLine("Welcome...");
+            Console.WriteLine("Vui lòng điền thông tin đăng nhập:");
+            Console.Write("Login Name: ");
+            _loginName = Console.ReadLine();
+            Console.Write("Password: ");
+            _password = Console.ReadLine();
+            Console.Write("Site Url: ");
+            _siteUrl = Console.ReadLine();
+
+            _provider = new SPClientContextProvider(_loginName, _password, _siteUrl);
+
             while (!_over)
             {
                 Update(); 
@@ -24,12 +42,12 @@ namespace CreateSPSite
 
         private void Update()
         {
-            Console.WriteLine("Welcome...");
             Console.WriteLine("Please select 1 action");
             Console.WriteLine("[1] Create Employees list");
             Console.WriteLine("[2] Create Project list");
             Console.WriteLine("[3] Create Project Document list");
             Console.WriteLine("[4] Create Site");
+            Console.WriteLine("[5] Change Site Url");
             Console.WriteLine("[Esc or Ctrl-C] Exit");
             _key = Console.ReadKey();
 
@@ -52,6 +70,12 @@ namespace CreateSPSite
                     Console.WriteLine("You press 3");
                     // TODO: Delete Project Documents
                     break;
+                case ConsoleKey.D4:
+                    // TODO: Create Site and Sub site
+                    break;
+                case ConsoleKey.D5:
+                    // TODO: allow changing site url
+                    break;
                 case ConsoleKey.Escape:
                     _over = true;
                     break;
@@ -62,7 +86,7 @@ namespace CreateSPSite
 
         private void HandleCreateList(string listName)
         {
-
+            var context = _provider.Create();
         }
     }
 }
