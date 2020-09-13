@@ -93,6 +93,8 @@
     <Compile Include="Factories\ContentTypeFactory.cs" />
     <Compile Include="Models\AbstractContentType.cs" />
     <Compile Include="Models\EmployeeContentType.cs" />
+    <Compile Include="Models\ProjectContentType.cs" />
+    <Compile Include="Models\ProjectDocContentType.cs" />
     <Compile Include="Models\SPClientContextProvider.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

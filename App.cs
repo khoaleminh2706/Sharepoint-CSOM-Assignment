@@ -60,37 +60,42 @@ namespace CreateSPSite
 
         public void HandleKey(ConsoleKeyInfo key)
         {
-            switch (key.Key)
+            try
             {
-                case ConsoleKey.D1:
-                    try
-                    {
-                        _contentTypeFactory.GetContentType(Constants.ConteType.Employee);
-                    }
-                    catch(Exception ex)
-                    {
-                        Console.WriteLine("Chương trình bị lỗi");
-                        Console.WriteLine(ex.Message);
-                    }
-                    break;
-                case ConsoleKey.D2:
-                    //SharepointService.CreateProjectList1();
-                    break;
-                case ConsoleKey.D3:
-                    Console.WriteLine("You press 3");
-                    // TODO: Delete Project Documents
-                    break;
-                case ConsoleKey.D4:
-                    // TODO: Create Site and Sub site
-                    break;
-                case ConsoleKey.D5:
-                    // TODO: allow changing site url
-                    break;
-                case ConsoleKey.Escape:
-                    _over = true;
-                    break;
-                default:
-                    return;
+                switch (key.Key)
+                {
+                    case ConsoleKey.D1:
+                        Console.WriteLine("Start creating Employee...");
+                        _contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+                        Console.WriteLine("Finish creating Employee...");
+                        break;
+                    case ConsoleKey.D2:
+                        Console.WriteLine("Start creating project...");
+                        _contentTypeFactory.GetContentType(Constants.ContentType.Project);
+                        Console.WriteLine("Finish creating project...");
+                        break;
+                    case ConsoleKey.D3:
+                        Console.WriteLine("Start creating project...");
+                        _contentTypeFactory.GetContentType(Constants.ContentType.ProjectDoc);
+                        Console.WriteLine("Finish creating project...");
+                        break;
+                    case ConsoleKey.D4:
+                        // TODO: Create Site and Sub site
+                        break;
+                    case ConsoleKey.D5:
+                        // TODO: allow changing site url
+                        break;
+                    case ConsoleKey.Escape:
+                        _over = true;
+                        break;
+                    default:
+                        return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Chương trình bị lỗi");
+                Console.WriteLine(ex.Message);
             }
         }
 

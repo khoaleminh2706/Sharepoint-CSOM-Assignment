@@ -2,11 +2,11 @@
 
 namespace CreateSPSite.Models
 {
-    public class EmployeeContentType : AbstractContentType
+    public class ProjectContentType : AbstractContentType
     {
-        public EmployeeContentType(ClientContext clientContext): base(clientContext)
+        public ProjectContentType(ClientContext clientContext) : base(clientContext)
         {
-            Name = "Employee";
+            Name = "Project";
         }
 
         public override void Create()

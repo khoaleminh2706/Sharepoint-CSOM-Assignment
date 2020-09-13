@@ -2,9 +2,9 @@
 
 namespace CreateSPSite.Models
 {
-    public class EmployeeContentType : AbstractContentType
+    public class ProjectDocContentType : AbstractContentType
     {
-        public EmployeeContentType(ClientContext clientContext): base(clientContext)
+        public ProjectDocContentType(ClientContext clientContext) : base(clientContext)
         {
             Name = "Employee";
         }

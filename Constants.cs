@@ -2,11 +2,11 @@
 {
     public class Constants
     {
-        public static class ConteType
+        public static class ContentType
         {
             public const string Employee = "Employee";
             public const string Project = "Project";
-            public const string ProjDoc = "Project Document";
+            public const string ProjectDoc = "Project Document";
         }
     }
 }
