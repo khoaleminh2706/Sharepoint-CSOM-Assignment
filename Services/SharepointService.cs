@@ -1,8 +1,6 @@
-﻿using Microsoft.Online.SharePoint.SPLogger;
-using Microsoft.Online.SharePoint.TenantAdministration;
+﻿using Microsoft.Online.SharePoint.TenantAdministration;
 using Microsoft.SharePoint.Client;
 using System;
-using System.Linq;
 
 namespace CreateSPSite.Services
 {
