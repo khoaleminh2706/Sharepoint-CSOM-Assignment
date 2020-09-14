@@ -1,4 +1,6 @@
-﻿using Microsoft.SharePoint.Client;
+﻿using Microsoft.Online.SharePoint.SPLogger;
+using Microsoft.Online.SharePoint.TenantAdministration;
+using Microsoft.SharePoint.Client;
 using System;
 using System.Linq;
 
@@ -21,239 +23,92 @@ namespace CreateSPSite.Services
             return hrWeb;
         }
 
-        public void CreateEmployeeContentType()
+        public string CreateSite(string adminSiteUrl, string rootSiteUrl, string loginName, string siteTitle, string siteUrl)
         {
-                ContentTypeCollection contentTypeCollection;
-                contentTypeCollection = _clientContext.Web.ContentTypes;
+            siteUrl = rootSiteUrl + "/sites/" + siteUrl;
 
-                _clientContext.Load(contentTypeCollection);
+            #region Create Site
+            try
+            {
+                var tenant = new Tenant(_clientContext);
+                var siteCreationProperties = new SiteCreationProperties
+                {
+
+                    //New SiteCollection Url
+                    Url = siteUrl,
+
+                    //Title of the Root Site
+                    Title = siteTitle,
+
+                    //Login name of Owner
+                    Owner = loginName,
+
+                    //Template of the Root Site. Using Team Site for now.
+                    // BLANKINTERNETCONTAINER#0 STS#0
+                    Template = "BLANKINTERNETCONTAINER#0",
+
+                    //Storage Limit in MB
+                    StorageMaximumLevel = 5,
+
+                    TimeZoneId = 7
+                };
+
+                //Create the SiteCollection
+                SpoOperation spo = tenant.CreateSite(siteCreationProperties);
+
+                _clientContext.Load(spo);
+                Console.WriteLine("Start creating site...");
                 _clientContext.ExecuteQuery();
 
-                ContentType item = (from contentType in contentTypeCollection where contentType.Name == "Employee" select contentType).FirstOrDefault();
-
-                if (item != null)
+                //Check if provisioning of the SiteCollection is complete.
+                while (!spo.IsComplete)
                 {
-                    Console.WriteLine("Content type already exists....");
-                }
-                else
-                {
-                    Console.WriteLine("Start creating content type.");
-
-                    ContentTypeCreationInformation contentTypeCreationInformation = new ContentTypeCreationInformation
-                    {
-                        Name = "Employee",
-                        // Description of the new content type
-                        Description = "New Content Type Description",
-
-                        // Name of the group under which the new content type will be creted
-                        Group = "Training"
-                    };
-
-
-                    item = contentTypeCollection.Add(contentTypeCreationInformation);
-
-                    _clientContext.Load(item);
+                    //Wait for 30 seconds and then try again
+                    System.Threading.Thread.Sleep(30000);
+                    //spo.RefreshLoad();
+                    _clientContext.Load(spo);
+                    Console.WriteLine("Sau 30 giây....");
                     _clientContext.ExecuteQuery();
-
-                    Console.WriteLine("Add column....");
-
-                    Field targetField = _clientContext.Web.AvailableFields.GetByInternalNameOrTitle("FirstName");
-
-                    FieldLinkCreationInformation fldLink = new FieldLinkCreationInformation();
-                    fldLink.Field = targetField;
-
-                    // If uou set this to "true", the column getting added to the content type will be added as "required" field
-                    fldLink.Field.Required = false;
-
-                    // If you set this to "true", the column getting added to the content type will be added as "hidden" field
-                    fldLink.Field.Hidden = false;
-
-                    item.FieldLinks.Add(fldLink);
-                    item.Update(false);
-                    _clientContext.ExecuteQuery();
-
-                    Console.WriteLine("Add column finished....");
-
-                    Console.WriteLine("Finish creating Content Type");
                 }
 
-                Console.WriteLine("Creating list...");
-
-                // Access subsite
-                Web hRWeb = _clientContext.Site.OpenWeb("HR");
-
-                ListCreationInformation creationInfo = new ListCreationInformation();
-                creationInfo.Title = "Employees";
-                creationInfo.Description = "New list description";
-                creationInfo.TemplateType = (int)ListTemplateType.GenericList;
-
-                List newList = hRWeb.Lists.Add(creationInfo);
-                newList.ContentTypesEnabled = true;
-
-                // Delete Item Content Type
-                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
-                if (targetContentType != null)
-                {
-                    targetContentType.DeleteObject();
-                }
-
-                // Add content type
-                newList.ContentTypes.AddExistingContentType(item);
-
-                _clientContext.Load(newList);
-                _clientContext.ExecuteQuery();
-
-                contentTypeCollection = newList.ContentTypes;
-
-                _clientContext.Load(contentTypeCollection);
-                _clientContext.ExecuteQuery();
-
-                _clientContext.Load(newList);
-                _clientContext.ExecuteQuery();
-
-                // Update the view
-                View view = newList.Views.GetByTitle("All Items");
-                _clientContext.Load(view, v => v.ViewFields);
-                Field name = newList.Fields.GetByInternalNameOrTitle("FirstName");
-
-                _clientContext.Load(name);
-                _clientContext.ExecuteQuery();
-
-                view.ViewFields.Add(name.InternalName);
-                view.Update();
-                _clientContext.ExecuteQuery();
-
-                // Execute the query to the server.
-                _clientContext.ExecuteQuery();
-
-                Console.WriteLine("Finished creating list...");
+                Console.WriteLine("Site Created.");
+                return siteUrl;
+            }
+            catch (ServerException ex)
+            {
+                Console.WriteLine($"Lỗi: {ex.Message}");
+                return null;
+            }
+            #endregion
         }
 
-        /// <summary>
-        /// Tạo Project list
-        /// </summary>
-        public void CreateProjectList()
-        { 
-                Web rootWeb = _clientContext.Site.RootWeb;
-                ContentTypeCollection contentTypeCollection = _clientContext.Web.ContentTypes;
-
-                _clientContext.Load(contentTypeCollection);
-                _clientContext.ExecuteQuery();
-
-                ContentType item = (from contentType in contentTypeCollection where contentType.Name == "Project" select contentType).FirstOrDefault();
-
-                if (item != null)
+        public string CreateHRSubsite()
+        {
+            string resultUrl = "";
+            Console.WriteLine("Creating HR subsite");
+            try
+            {
+                WebCreationInformation webCreationInfo = new WebCreationInformation
                 {
-                    Console.WriteLine("Content type already exists....");
-                }
-                else
-                {
-                    Console.WriteLine("Start creating content type.");
+                    Url = "HR",
+                    Title = "HR Department",
+                    Description = "Subsite for HR",
+                    UseSamePermissionsAsParentSite = true,
+                    WebTemplate = "STS#0",
+                    Language = 1033,
+                };
 
-                    ContentTypeCreationInformation contentTypeCreationInformation = new ContentTypeCreationInformation
-                    {
-                        Name = "Project",
-                        // Description of the new content type
-                        Description = "New Content Type Description",
-
-                        // Name of the group under which the new content type will be creted
-                        Group = "Training"
-                    };
-
-                    item = contentTypeCollection.Add(contentTypeCreationInformation);
-
-                    _clientContext.Load(item);
-                    _clientContext.ExecuteQuery();
-
-                    Console.WriteLine("Add column....");
-
-                    string projectNameFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Text' Name='Project Name' StaticName='ProjectName' DisplayName='Project Name' />";
-                    Field projectNameField = rootWeb.Fields.AddFieldAsXml(projectNameFieldSchema, false, AddFieldOptions.AddFieldInternalNameHint);
-                    projectNameField.Group = "Training";
-                    item.FieldLinks.Add(new FieldLinkCreationInformation
-                    {
-                        Field = projectNameField,
-                    });
-
-                    item.Update(false);
-                    _clientContext.ExecuteQuery();
-
-                    Console.WriteLine("Add column finished....");
-
-                    Console.WriteLine("Finish creating Content Type");
-                }
-
-                Console.WriteLine("Creating list...");
-
-                // Access subsite
-                Web hRWeb = _clientContext.Site.OpenWeb("HR");
-
-                // Find Employees list
-                _clientContext.Load(hRWeb.Lists);
+                Web web = _clientContext.Site.RootWeb.Webs.Add(webCreationInfo);
+                _clientContext.Load(web);
                 _clientContext.ExecuteQuery();
-
-                var employeesList = hRWeb.Lists.GetByTitle("Employees");
-                _clientContext.Load(employeesList);
-                _clientContext.ExecuteQuery();
-
-                ListCreationInformation creationInfo = new ListCreationInformation();
-                creationInfo.Title = "Projects";
-                creationInfo.Description = "New list description";
-                creationInfo.TemplateType = (int)ListTemplateType.GenericList;
-
-                List newList = hRWeb.Lists.Add(creationInfo);
-                newList.ContentTypesEnabled = true;
-                newList.ContentTypes.AddExistingContentType(item);
-                
-                _clientContext.Load(newList);
-
-                contentTypeCollection = newList.ContentTypes;
-
-                _clientContext.Load(contentTypeCollection);
-
-                // Remove Item
-                ContentType targetContentType = (from contentType in contentTypeCollection where contentType.Name == "Item" select contentType).FirstOrDefault();
-
-                if (targetContentType != null)
-                {
-                    targetContentType.DeleteObject();
-                }
-
-                string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + employeesList.Id + "' ShowField='Title' />";
-                Field leaderField = newList.Fields.AddFieldAsXml(leaderFieldSchema, false, AddFieldOptions.AddToDefaultContentType);
-                _clientContext.Load(leaderField);
-                leaderField.SetShowInEditForm(true);
-                leaderField.SetShowInNewForm(true);
-                leaderField.Update();
-
-                // Add member field
-                //string memberFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Member' StaticName='Member' DisplayName='Member' List='" + employeesList.Id + "' ShowField='Title' />";
-                //Field memberField = rootWeb.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
-
-                //memberField = newList.Fields.Add(memberField);
-                //memberField.SetShowInEditForm(true);
-                //memberField.SetShowInNewForm(true);
-
-                newList.Update();
-
-                // Update the view
-                View view = newList.Views.GetByTitle("All Items");
-                _clientContext.Load(view, v => v.ViewFields);
-                Field name = newList.Fields.GetByInternalNameOrTitle("ProjectName");
-                Field leader = newList.Fields.GetByInternalNameOrTitle("Leader");
-
-                _clientContext.Load(name);
-                _clientContext.Load(leader);
-                _clientContext.ExecuteQuery();
-
-                view.ViewFields.Add(name.InternalName);
-                view.Update();
-                _clientContext.ExecuteQuery();
-
-                // Execute the query to the server.
-                _clientContext.ExecuteQuery();
-
-                Console.WriteLine("Finished creating list...");
+                resultUrl = web.Url;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Lỗi tạo HR subsite");
+                Console.WriteLine("Lỗi: " + ex.GetType().Name + " " + ex.Message);
+            }
+            return resultUrl;
         }
     }
 }

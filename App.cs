@@ -1,4 +1,5 @@
 using System;
+using System.Xml;
 using CreateSPSite.Factories;
 using CreateSPSite.Provider;
 using CreateSPSite.Services;
@@ -72,7 +73,7 @@ namespace CreateSPSite
                 {
                     case ConsoleKey.D1:
                         Console.WriteLine("Start creating Employee...");
-                        //_contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+                        _contentTypeFactory.GetContentType(Constants.ContentType.Employee);
                         AccessHrSite();
                         Console.WriteLine("Finish creating Employee...");
                         break;
@@ -122,44 +123,35 @@ namespace CreateSPSite
 
         private void AccessHrSite()
         {
-            Web hrWeb;
+            Web hrWeb = null;
             try
             {
                 hrWeb = _service.CheckHRSubsiteExist();
             }
             catch (Exception)
             {
-                throw new Exception("subite HR không tồn tại. Vui lòng tạo trước khi tiếp tục");
+                Console.WriteLine("subite HR không tồn tại.");
+                Console.Write("Bạn có muốn tạo subsite tên HR? [Y] Có [N or any key]: Không: ");
+                var answer = Console.ReadKey();
+                
+                // Xuống 1 dòng
+                Console.WriteLine();
+                if (answer.Key == ConsoleKey.Y)
+                {
+                    _service.CreateHRSubsite();
+                }
+                AccessHrSite();
             }
             _provider.SiteUrl = hrWeb.Url;
             _contentTypeFactory = new ContentTypeFactory(_provider.Create());
             _service = new SharepointService(_provider.Create());
         }
 
-        private void HandleOption1()
-        {
-            Console.WriteLine("Create Employees list");
-            Console.WriteLine("Please insert website url");
-            string siteUrl = Console.ReadLine();
-            SharepointService.CreateEmployeeContentType(siteUrl);
-        }
-
-        private void HandleOption2()
-        {
-            SharepointService.CreateProjectList();
-        }
-
-        private void HandleOption3()
-        {
-            Console.WriteLine("Create Document list");
-            SharepointService.CreateDocumentList();
-        }
-
         private void HandleOption4()
         {
             Console.WriteLine("Create Site");
-            string siteUrl = SharepointService.CreateSite("https://khoaleminh-admin.sharepoint.com", "https://khoaleminh.sharepoint.com", "new site 2", "newsite2");
-            Console.WriteLine(siteUrl);
+            //string siteUrl = _service.CreateSite("https://khoaleminh-admin.sharepoint.com", "https://khoaleminh.sharepoint.com", "new site 2", "newsite2");
+            //Console.WriteLine(siteUrl);
         }
     }
 }
