@@ -17,9 +17,5 @@ namespace CreateSPSite.Models
                 "ProgrammingLanguages"
             };
         }
-        protected override void AddView(List list)
-        {
-            base.AddView(list);
-        }
     }
 }

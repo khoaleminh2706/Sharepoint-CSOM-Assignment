@@ -100,6 +100,7 @@
     <Compile Include="Models\NewColumnField.cs" />
     <Compile Include="Models\ProjectContentType.cs" />
     <Compile Include="Models\ProjectDocContentType.cs" />
+    <Compile Include="Models\ProjectsList.cs" />
     <Compile Include="Models\SiteColumnField.cs" />
     <Compile Include="Providers\SPClientContextProvider.cs" />
     <Compile Include="Program.cs" />

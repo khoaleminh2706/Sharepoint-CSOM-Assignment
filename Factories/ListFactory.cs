@@ -22,6 +22,10 @@ namespace CreateSPSite.Factories
                     _model = new EmployeesList(_context);
                     _model.Create();
                     break;
+                case Constants.ListTitle.Projects:
+                    _model = new ProjectsList(_context);
+                    _model.Create();
+                    break;
                 default:
                     throw new Exception("Chương trình không hỗ trợ List này");
             }

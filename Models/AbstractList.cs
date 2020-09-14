@@ -55,6 +55,7 @@ namespace CreateSPSite.Models
             _context.ExecuteQuery();
 
             AddView(newList);
+            AddCustomColum(newList);
             _context.ExecuteQuery();
 
             return newList;
