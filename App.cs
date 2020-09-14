@@ -1,6 +1,8 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.Threading;
+using System;
+using CreateSPSite.Factories;
+using CreateSPSite.Provider;
+using CreateSPSite.Services;
+using Microsoft.SharePoint.Client;
 
 namespace CreateSPSite
 {
@@ -8,9 +10,12 @@ namespace CreateSPSite
     {
         private bool _over;
         private ConsoleKeyInfo _key;
-        private string loginName;
-        private string password;
-        private string ITFirm;
+        private string _loginName;
+        private string _password;
+        private string _siteUrl;
+        private SPClientContextProvider _provider;
+        private ContentTypeFactory _contentTypeFactory;
+        private SharepointService _service;
 
         public App(bool over)
         {
@@ -19,7 +24,21 @@ namespace CreateSPSite
 
         public void Run()
         {
-            Console.WriteLine("");
+            // TODO: allow changing url
+            Console.WriteLine("Welcome...");
+            Console.WriteLine("Vui lòng điền thông tin đăng nhập:");
+            Console.Write("Login Name: ");
+            _loginName = Console.ReadLine();
+            Console.Write("Password: ");
+            _password = Console.ReadLine();
+            Console.Write("Site Url: ");
+            _siteUrl = Console.ReadLine();
+
+            _provider = new SPClientContextProvider(_loginName, _password, _siteUrl);
+            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
+            _service = new SharepointService(_provider.Create());
+
+
             while (!_over)
             {
                 Update(); 
@@ -29,13 +48,14 @@ namespace CreateSPSite
 
         private void Update()
         {
-            Console.WriteLine("Welcome...");
             Console.WriteLine("Please select 1 action");
             Console.WriteLine("[1] Create Employees list");
             Console.WriteLine("[2] Create Project list");
             Console.WriteLine("[3] Create Project Document list");
-            Console.WriteLine("[4] Create a site and all list");
-            Console.WriteLine("[C] Change Site Url");
+            Console.WriteLine("[4] Create Site");
+            Console.WriteLine("[5] Current Url");
+            Console.WriteLine("[6] Change Site Url");
+
             Console.WriteLine("[Esc or Ctrl-C] Exit");
             _key = Console.ReadKey();
 
@@ -46,26 +66,74 @@ namespace CreateSPSite
 
         public void HandleKeyPress(ConsoleKeyInfo key)
         {
-            switch (key.Key)
+            try
             {
-                case ConsoleKey.D1:
-                    HandleOption1();
-                    break;
-                case ConsoleKey.D2:
-                    HandleOption2();
-                    break;
-                case ConsoleKey.D3:
-                    HandleOption3();
-                    break;
-                case ConsoleKey.D4:
-                    HandleOption4();
-                    break;
-                case ConsoleKey.Escape:
-                    _over = true;
-                    break;
-                default:
-                    return;
+                switch (key.Key)
+                {
+                    case ConsoleKey.D1:
+                        Console.WriteLine("Start creating Employee...");
+                        //_contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+                        AccessHrSite();
+                        Console.WriteLine("Finish creating Employee...");
+                        break;
+                    case ConsoleKey.D2:
+                        Console.WriteLine("Start creating project...");
+                        _contentTypeFactory.GetContentType(Constants.ContentType.Project);
+                        AccessHrSite();
+                        Console.WriteLine("Finish creating project...");
+                        break;
+                    case ConsoleKey.D3:
+                        Console.WriteLine("Start creating project document...");
+                        _contentTypeFactory.GetContentType(Constants.ContentType.ProjectDoc);
+                        AccessHrSite();
+                        Console.WriteLine("Finish creating project document...");
+                        break;
+                    case ConsoleKey.D4:
+                        // TODO: Create Site and Sub site
+                        break;
+                    case ConsoleKey.D5:
+                        Console.WriteLine(_provider.SiteUrl);
+                        break;
+                    case ConsoleKey.D6:
+                        HandleChangeUrl();
+                        break;
+                    case ConsoleKey.Escape:
+                        _over = true;
+                        break;
+                    default:
+                        return;
+                }
             }
+            catch (Exception ex)
+            {
+                Console.Write("Lỗi: ");
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private void HandleChangeUrl()
+        {
+            Console.Write("Nhập link mới: ");
+            _siteUrl = Console.ReadLine();
+            _provider.SiteUrl = _siteUrl;
+            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
+            _service = new SharepointService(_provider.Create());
+        }
+
+        private void AccessHrSite()
+        {
+            Web hrWeb;
+            try
+            {
+                hrWeb = _service.CheckHRSubsiteExist();
+            }
+            catch (Exception)
+            {
+                throw new Exception("subite HR không tồn tại. Vui lòng tạo trước khi tiếp tục");
+            }
+            _provider.SiteUrl = hrWeb.Url;
+            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
+            _service = new SharepointService(_provider.Create());
         }
 
         private void HandleOption1()
