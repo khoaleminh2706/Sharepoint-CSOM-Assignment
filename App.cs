@@ -1,6 +1,8 @@
 ﻿using System;
 using CreateSPSite.Factories;
 using CreateSPSite.Provider;
+using CreateSPSite.Services;
+using Microsoft.SharePoint.Client;
 
 namespace CreateSPSite
 {
@@ -13,6 +15,7 @@ namespace CreateSPSite
         private string _siteUrl;
         private SPClientContextProvider _provider;
         private ContentTypeFactory _contentTypeFactory;
+        private SharepointService _service;
 
         public App(bool over)
         {
@@ -33,6 +36,7 @@ namespace CreateSPSite
 
             _provider = new SPClientContextProvider(_loginName, _password, _siteUrl);
             _contentTypeFactory = new ContentTypeFactory(_provider.Create());
+            _service = new SharepointService(_provider.Create());
 
             while (!_over)
             {
@@ -66,17 +70,20 @@ namespace CreateSPSite
                 {
                     case ConsoleKey.D1:
                         Console.WriteLine("Start creating Employee...");
-                        _contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+                        //_contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+                        AccessHrSite();
                         Console.WriteLine("Finish creating Employee...");
                         break;
                     case ConsoleKey.D2:
                         Console.WriteLine("Start creating project...");
                         _contentTypeFactory.GetContentType(Constants.ContentType.Project);
+                        AccessHrSite();
                         Console.WriteLine("Finish creating project...");
                         break;
                     case ConsoleKey.D3:
                         Console.WriteLine("Start creating project document...");
                         _contentTypeFactory.GetContentType(Constants.ContentType.ProjectDoc);
+                        AccessHrSite();
                         Console.WriteLine("Finish creating project document...");
                         break;
                     case ConsoleKey.D4:
@@ -108,6 +115,23 @@ namespace CreateSPSite
             _siteUrl = Console.ReadLine();
             _provider.SiteUrl = _siteUrl;
             _contentTypeFactory = new ContentTypeFactory(_provider.Create());
+            _service = new SharepointService(_provider.Create());
+        }
+
+        private void AccessHrSite()
+        {
+            Web hrWeb;
+            try
+            {
+                hrWeb = _service.CheckHRSubsiteExist();
+            }
+            catch (Exception)
+            {
+                throw new Exception("subite HR không tồn tại. Vui lòng tạo trước khi tiếp tục");
+            }
+            _provider.SiteUrl = hrWeb.Url;
+            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
+            _service = new SharepointService(_provider.Create());
         }
     }
 }

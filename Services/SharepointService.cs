@@ -13,6 +13,14 @@ namespace CreateSPSite.Services
             _clientContext = clientContext;
         }
 
+        public Web CheckHRSubsiteExist()
+        {
+            Web hrWeb = _clientContext.Site.OpenWeb("HR");
+            _clientContext.Load(hrWeb);
+            _clientContext.ExecuteQuery();
+            return hrWeb;
+        }
+
         public void CreateEmployeeContentType()
         {
                 ContentTypeCollection contentTypeCollection;
@@ -246,72 +254,6 @@ namespace CreateSPSite.Services
                 _clientContext.ExecuteQuery();
 
                 Console.WriteLine("Finished creating list...");
-        }
-
-        /// <summary>
-        /// Delete Content Type by Title
-        /// </summary>
-        /// <param name="name"></param>
-        public void DeleteContentType(string name)
-        {
-                ContentTypeCollection oContentTypeCollection = _clientContext.Web.ContentTypes;
-
-                // Load content type collection
-                _clientContext.Load(oContentTypeCollection);
-                _clientContext.ExecuteQuery();
-
-                ContentType targetContentType = (from contentType in oContentTypeCollection where contentType.Name == name select contentType).FirstOrDefault();
-
-                // Delete Content Type
-                targetContentType.DeleteObject();
-
-                _clientContext.ExecuteQuery();
-        }
-
-        public void FindContentTypeAssoc(string name)
-        {
-            ContentTypeCollection contentTypeColl = _clientContext.Web.ContentTypes;
-
-            _clientContext.Load(contentTypeColl);
-            _clientContext.Load(_clientContext.Web);
-            _clientContext.Load(_clientContext.Web.Lists);
-            _clientContext.Load(_clientContext.Web.Webs);
-            _clientContext.ExecuteQuery();
-
-            foreach (var list in _clientContext.Web.Lists)
-            {
-                _clientContext.Load(list.ContentTypes);
-                _clientContext.ExecuteQuery();
-
-                var targetContentType = (from contentType in contentTypeColl where contentType.Name == name select contentType).FirstOrDefault();
-                if (targetContentType != null)
-                {
-                    Console.WriteLine("Found at " + list.Title);
-                }
-            }
-
-            if (_clientContext.Web.Webs.Count > 0)
-            {
-                foreach (var web in _clientContext.Web.Webs)
-                {
-                    contentTypeColl = web.ContentTypes;
-                    _clientContext.Load(contentTypeColl);
-                    _clientContext.Load(web.Lists);
-                    _clientContext.ExecuteQuery();
-
-                    foreach (var list in web.Lists)
-                    {
-                        _clientContext.Load(list.ContentTypes);
-                        _clientContext.ExecuteQuery();
-
-                        var targetContentType = (from contentType in contentTypeColl where contentType.Name == name select contentType).FirstOrDefault();
-                        if (targetContentType != null)
-                        {
-                            Console.WriteLine("Found at " + list.Title);
-                        }
-                    }
-                }
-            }
         }
     }
 }
