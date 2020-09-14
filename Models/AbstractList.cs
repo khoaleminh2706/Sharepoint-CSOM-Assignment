@@ -17,11 +17,12 @@ namespace CreateSPSite.Models
         public virtual List Create()
         {
             // check list already exists
+            var contentTypeColl = _context.Site.RootWeb.ContentTypes;
             _context.Load(_context.Web.Lists);
-            _context.Load(_context.Site.RootWeb.ContentTypes);
+            _context.Load(contentTypeColl);
             _context.ExecuteQuery();
 
-            var list = CheckExists(_context.Web.Lists);
+            var list = CheckListExists(_context.Web.Lists);
            
             if (list != null)
                 throw new Exception("List đã tồn tại");
@@ -29,7 +30,7 @@ namespace CreateSPSite.Models
             // Check content type exists
             var targetContentType = GetContentType(_context.Site.RootWeb.ContentTypes);
             if (targetContentType == null)
-                throw new Exception($"Content Type {ContentTypeName} không tồn tại. Vui lòng tạo content type trước.");
+                throw new Exception($"Content Type {ContentTypeTitle} không tồn tại. Vui lòng tạo content type trước.");
 
             ListCreationInformation creationInfo = new ListCreationInformation
             {
@@ -39,24 +40,38 @@ namespace CreateSPSite.Models
             };
 
             List newList = _context.Web.Lists.Add(creationInfo);
+            _context.Load(newList.ContentTypes);
+            _context.ExecuteQuery();
+
             newList.ContentTypesEnabled = true;
             newList.ContentTypes.AddExistingContentType(targetContentType);
+            
+            var itemContentType = GetContentType(newList.ContentTypes, "Item");
+            if (itemContentType != null)
+                itemContentType.DeleteObject();
 
-            _context.Load(newList);
+            newList.Update();
             _context.ExecuteQuery();
+
             return newList;
         }
 
-        protected List CheckExists(ListCollection collection, string listTitle = "")
+        protected List CheckListExists(ListCollection collection)
         {
-            listTitle = listTitle != "" ? listTitle : Title;
-            return (from list in collection where list.Title == listTitle select list)
+            return (from list in collection where list.Title == Title select list)
                 .FirstOrDefault();
         }
 
-        protected ContentType GetContentType(ContentTypeCollection collection)
-            => (from contentType in collection where contentType.Name == ContentTypeName select contentType)
+        protected ContentType GetContentType(ContentTypeCollection collection, string contentTypeTitle = "")
+        {
+            contentTypeTitle = contentTypeTitle != "" ? contentTypeTitle : ContentTypeTitle;
+            return (from contentType in collection where contentType.Name == contentTypeTitle select contentType)
                 .FirstOrDefault();
+        }
+
+        protected abstract List AddCustomColum(List list);
+
+        protected abstract List AddView();
 
         public void Dispose()
         {
@@ -66,7 +81,7 @@ namespace CreateSPSite.Models
 
         #region Properties
         public string Title { get; set; }
-        public string ContentTypeName { get; set; }
+        public string ContentTypeTitle { get; set; }
         public int TemplateType { get; set; } = (int)ListTemplateType.GenericList;
         #endregion
     }

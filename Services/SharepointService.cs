@@ -21,62 +21,54 @@ namespace CreateSPSite.Services
             return hrWeb;
         }
 
-        public string CreateSite(string adminSiteUrl, string rootSiteUrl, string loginName, string siteTitle, string siteUrl)
+        public string CreateSite(string rootSiteUrl, string loginName, string siteTitle, string siteUrl)
         {
             siteUrl = rootSiteUrl + "/sites/" + siteUrl;
 
             #region Create Site
-            try
+            var tenant = new Tenant(_clientContext);
+            var siteCreationProperties = new SiteCreationProperties
             {
-                var tenant = new Tenant(_clientContext);
-                var siteCreationProperties = new SiteCreationProperties
-                {
 
-                    //New SiteCollection Url
-                    Url = siteUrl,
+                //New SiteCollection Url
+                Url = siteUrl,
 
-                    //Title of the Root Site
-                    Title = siteTitle,
+                //Title of the Root Site
+                Title = siteTitle,
 
-                    //Login name of Owner
-                    Owner = loginName,
+                //Login name of Owner
+                Owner = loginName,
 
-                    //Template of the Root Site. Using Team Site for now.
-                    // BLANKINTERNETCONTAINER#0 STS#0
-                    Template = "BLANKINTERNETCONTAINER#0",
+                //Template of the Root Site. Using Team Site for now.
+                // BLANKINTERNETCONTAINER#0 STS#0
+                Template = "BLANKINTERNETCONTAINER#0",
 
-                    //Storage Limit in MB
-                    StorageMaximumLevel = 5,
+                //Storage Limit in MB
+                StorageMaximumLevel = 5,
 
-                    TimeZoneId = 7
-                };
+                TimeZoneId = 7
+            };
 
-                //Create the SiteCollection
-                SpoOperation spo = tenant.CreateSite(siteCreationProperties);
+            //Create the SiteCollection
+            SpoOperation spo = tenant.CreateSite(siteCreationProperties);
 
+            _clientContext.Load(spo);
+            Console.WriteLine("Start creating site...");
+            _clientContext.ExecuteQuery();
+
+            //Check if provisioning of the SiteCollection is complete.
+            while (!spo.IsComplete)
+            {
+                //Wait for 30 seconds and then try again
+                System.Threading.Thread.Sleep(30000);
+                //spo.RefreshLoad();
                 _clientContext.Load(spo);
-                Console.WriteLine("Start creating site...");
+                Console.WriteLine("Sau 30 giây....");
                 _clientContext.ExecuteQuery();
-
-                //Check if provisioning of the SiteCollection is complete.
-                while (!spo.IsComplete)
-                {
-                    //Wait for 30 seconds and then try again
-                    System.Threading.Thread.Sleep(30000);
-                    //spo.RefreshLoad();
-                    _clientContext.Load(spo);
-                    Console.WriteLine("Sau 30 giây....");
-                    _clientContext.ExecuteQuery();
-                }
-
-                Console.WriteLine("Site Created.");
-                return siteUrl;
             }
-            catch (ServerException ex)
-            {
-                Console.WriteLine($"Lỗi: {ex.Message}");
-                return null;
-            }
+
+            Console.WriteLine("Site Created.");
+            return siteUrl;
             #endregion
         }
 

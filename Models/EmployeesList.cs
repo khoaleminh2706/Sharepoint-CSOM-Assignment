@@ -7,8 +7,18 @@ namespace CreateSPSite.Models
         public EmployeesList(ClientContext context): base(context)
         {
             Title = Constants.ListTitle.Employees;
-            ContentTypeName = Constants.ContentType.Employee;
+            ContentTypeTitle = Constants.ContentType.Employee;
             TemplateType = (int)ListTemplateType.GenericList;
+        }
+
+        protected override List AddCustomColum(List list)
+        {
+            return null;
+        }
+
+        protected override List AddView()
+        {
+            return null;
         }
     }
 }
