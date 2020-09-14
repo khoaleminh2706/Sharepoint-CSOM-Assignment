@@ -1,5 +1,4 @@
 using System;
-using System.Xml;
 using CreateSPSite.Factories;
 using CreateSPSite.Provider;
 using CreateSPSite.Services;
@@ -109,7 +108,7 @@ namespace CreateSPSite
             catch (Exception ex)
             {
                 Console.Write("Lỗi App: ");
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.GetType().Name + " " + ex.Message);
             }
         }
 

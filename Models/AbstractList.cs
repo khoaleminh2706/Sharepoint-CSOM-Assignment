@@ -1,5 +1,6 @@
 ﻿using Microsoft.SharePoint.Client;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CreateSPSite.Models
@@ -53,6 +54,9 @@ namespace CreateSPSite.Models
             newList.Update();
             _context.ExecuteQuery();
 
+            AddView(newList);
+            _context.ExecuteQuery();
+
             return newList;
         }
 
@@ -69,9 +73,26 @@ namespace CreateSPSite.Models
                 .FirstOrDefault();
         }
 
-        protected abstract List AddCustomColum(List list);
+        protected virtual List AddCustomColum(List list) => list;
 
-        protected abstract List AddView();
+        protected virtual void AddView(List list)
+        {
+            // load data
+            // load all fields
+            _context.Load(list.Fields);
+
+            var targetView = list.Views.GetByTitle(ViewTitle);
+            _context.Load(targetView, v => v.ViewFields);
+            _context.ExecuteQuery();
+
+            var fields = list.Fields.Where(fi => ColumnList.Contains(fi.InternalName)).ToList();
+
+            fields.ToList().ForEach(fi =>
+            {
+                targetView.ViewFields.Add(fi.InternalName);
+            });
+            targetView.Update();
+        }
 
         public void Dispose()
         {
@@ -83,6 +104,8 @@ namespace CreateSPSite.Models
         public string Title { get; set; }
         public string ContentTypeTitle { get; set; }
         public int TemplateType { get; set; } = (int)ListTemplateType.GenericList;
+        public string ViewTitle { get; set; } = "All Items";
+        public List<string> ColumnList { get; set; }
         #endregion
     }
 }

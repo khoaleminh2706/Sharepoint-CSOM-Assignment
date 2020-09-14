@@ -9,16 +9,17 @@ namespace CreateSPSite.Models
             Title = Constants.ListTitle.Employees;
             ContentTypeTitle = Constants.ContentType.Employee;
             TemplateType = (int)ListTemplateType.GenericList;
+            ViewTitle = "All Items";
+            ColumnList = new System.Collections.Generic.List<string>
+            {
+                "FirstName",
+                "ShortDesc",
+                "ProgrammingLanguages"
+            };
         }
-
-        protected override List AddCustomColum(List list)
+        protected override void AddView(List list)
         {
-            return null;
-        }
-
-        protected override List AddView()
-        {
-            return null;
+            base.AddView(list);
         }
     }
 }
