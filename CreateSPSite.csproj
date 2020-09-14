@@ -91,10 +91,12 @@
     <Compile Include="App.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Factories\ContentTypeFactory.cs" />
+    <Compile Include="Factories\ListFactory.cs" />
     <Compile Include="Models\AbstractContentType.cs" />
     <Compile Include="Models\AbstractField.cs" />
     <Compile Include="Models\AbstractList.cs" />
     <Compile Include="Models\EmployeeContentType.cs" />
+    <Compile Include="Models\EmployeesList.cs" />
     <Compile Include="Models\NewColumnField.cs" />
     <Compile Include="Models\ProjectContentType.cs" />
     <Compile Include="Models\ProjectDocContentType.cs" />

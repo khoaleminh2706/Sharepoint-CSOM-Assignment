@@ -8,38 +8,32 @@ namespace CreateSPSite.Models
     {
         private ClientContext _context;
 
-        public AbstractList(ClientContext context, string name)
+        public AbstractList(ClientContext context)
         {
             _context = context;
-            Name = name;
         }
 
         #region Methods
         public virtual List Create()
         {
-            //var employeesList = _context.Web.Lists.GetByTitle("Employees");
-            //_context.Load(employeesList);
-            //_context.ExecuteQuery();
-            //return employeesList;
-
             // check list already exists
             _context.Load(_context.Web.Lists);
-            _context.Load(_context.Web.ContentTypes);
+            _context.Load(_context.Site.RootWeb.ContentTypes);
+            _context.ExecuteQuery();
 
             var list = CheckExists(_context.Web.Lists);
+           
             if (list != null)
-            {
                 throw new Exception("List đã tồn tại");
-            }
 
             // Check content type exists
-            var targetContentType = CheckConentTypeExits(_context.Web.ContentTypes);
+            var targetContentType = GetContentType(_context.Site.RootWeb.ContentTypes);
             if (targetContentType == null)
-                throw new Exception("Content Type không tồn tại. Vui lòng tạo content type trước.");
+                throw new Exception($"Content Type {ContentTypeName} không tồn tại. Vui lòng tạo content type trước.");
 
             ListCreationInformation creationInfo = new ListCreationInformation
             {
-                Title = Name,
+                Title = Title,
                 Description = "New list description",
                 TemplateType = TemplateType
             };
@@ -53,16 +47,16 @@ namespace CreateSPSite.Models
             return newList;
         }
 
-        public List CheckExists(ListCollection collection)
+        protected List CheckExists(ListCollection collection, string listTitle = "")
         {
-            return collection.GetByTitle(Name);
-        }
-
-        public ContentType CheckConentTypeExits(ContentTypeCollection collection)
-        {
-            return (from contentType in collection where contentType.Name == ContentTypeName select contentType)
+            listTitle = listTitle != "" ? listTitle : Title;
+            return (from list in collection where list.Title == listTitle select list)
                 .FirstOrDefault();
         }
+
+        protected ContentType GetContentType(ContentTypeCollection collection)
+            => (from contentType in collection where contentType.Name == ContentTypeName select contentType)
+                .FirstOrDefault();
 
         public void Dispose()
         {
@@ -71,9 +65,9 @@ namespace CreateSPSite.Models
         #endregion
 
         #region Properties
-        public string Name { get; set; }
+        public string Title { get; set; }
         public string ContentTypeName { get; set; }
-        public int TemplateType { get; set; }
+        public int TemplateType { get; set; } = (int)ListTemplateType.GenericList;
         #endregion
     }
 }

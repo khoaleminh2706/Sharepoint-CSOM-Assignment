@@ -15,8 +15,10 @@ namespace CreateSPSite
         private string _password;
         private string _siteUrl;
         private SPClientContextProvider _provider;
-        private ContentTypeFactory _contentTypeFactory;
         private SharepointService _service;
+
+        private ContentTypeFactory _contentTypeFactory;
+        private ListFactory _listFactory;
 
         public App(bool over)
         {
@@ -36,9 +38,7 @@ namespace CreateSPSite
             _siteUrl = Console.ReadLine();
 
             _provider = new SPClientContextProvider(_loginName, _password, _siteUrl);
-            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
-            _service = new SharepointService(_provider.Create());
-
+            ResetContext(_provider.Create());
 
             while (!_over)
             {
@@ -73,8 +73,9 @@ namespace CreateSPSite
                 {
                     case ConsoleKey.D1:
                         Console.WriteLine("Start creating Employee...");
-                        _contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+                        //_contentTypeFactory.GetContentType(Constants.ContentType.Employee);
                         AccessHrSite();
+                        _listFactory.CreateList(Constants.ListTitle.Employees);
                         Console.WriteLine("Finish creating Employee...");
                         break;
                     case ConsoleKey.D2:
@@ -107,7 +108,7 @@ namespace CreateSPSite
             }
             catch (Exception ex)
             {
-                Console.Write("Lỗi: ");
+                Console.Write("Lỗi App: ");
                 Console.WriteLine(ex.Message);
             }
         }
@@ -117,8 +118,7 @@ namespace CreateSPSite
             Console.Write("Nhập link mới: ");
             _siteUrl = Console.ReadLine();
             _provider.SiteUrl = _siteUrl;
-            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
-            _service = new SharepointService(_provider.Create());
+            ResetContext(_provider.Create());
         }
 
         private void AccessHrSite()
@@ -131,7 +131,7 @@ namespace CreateSPSite
             catch (Exception)
             {
                 Console.WriteLine("subite HR không tồn tại.");
-                Console.Write("Bạn có muốn tạo subsite tên HR? [Y] Có [N or any key]: Không: ");
+                Console.Write("Bạn có muốn tạo subsite tên HR? [Y] Có [N or any key] Không: ");
                 var answer = Console.ReadKey();
                 
                 // Xuống 1 dòng
@@ -143,8 +143,7 @@ namespace CreateSPSite
                 AccessHrSite();
             }
             _provider.SiteUrl = hrWeb.Url;
-            _contentTypeFactory = new ContentTypeFactory(_provider.Create());
-            _service = new SharepointService(_provider.Create());
+           ResetContext(_provider.Create());
         }
 
         private void HandleOption4()
@@ -152,6 +151,13 @@ namespace CreateSPSite
             Console.WriteLine("Create Site");
             //string siteUrl = _service.CreateSite("https://khoaleminh-admin.sharepoint.com", "https://khoaleminh.sharepoint.com", "new site 2", "newsite2");
             //Console.WriteLine(siteUrl);
+        }
+
+        private void ResetContext(ClientContext context)
+        {
+            _contentTypeFactory = new ContentTypeFactory(context);
+            _listFactory = new ListFactory(context);
+            _service = new SharepointService(context);
         }
     }
 }

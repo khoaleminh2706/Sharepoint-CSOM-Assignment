@@ -15,7 +15,7 @@
             public const string NewColumn = "NewColumn";
         }
 
-        public static class ListName
+        public static class ListTitle
         {
             public const string Employees = "Employees";
             public const string Projects = "Projects";
