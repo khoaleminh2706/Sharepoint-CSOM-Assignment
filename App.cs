@@ -132,16 +132,8 @@ namespace CreateSPSite
             }
             catch (Exception)
             {
-                Console.WriteLine("subite HR không tồn tại.");
-                Console.Write("Bạn có muốn tạo subsite tên HR? [Y] Có [N or any key] Không: ");
-                var answer = Console.ReadKey();
-                
-                // Xuống 1 dòng
-                Console.WriteLine();
-                if (answer.Key == ConsoleKey.Y)
-                {
-                    _service.CreateHRSubsite();
-                }
+                Console.WriteLine("subite HR không tồn tại. Creating subsite...");
+                _service.CreateHRSubsite();
                 AccessHrSite();
             }
             _provider.SiteUrl = hrWeb.Url;
