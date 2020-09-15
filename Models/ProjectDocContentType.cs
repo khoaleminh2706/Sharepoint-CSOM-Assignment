@@ -9,6 +9,7 @@ namespace CreateSPSite.Models
         public ProjectDocContentType(ClientContext clientContext) : base(clientContext)
         {
             Name = "Project Document";
+            ParentTypeTitle = "Document";
             FieldsList = new List<AbstractField>()
             {
                 new NewColumnField(clientContext)

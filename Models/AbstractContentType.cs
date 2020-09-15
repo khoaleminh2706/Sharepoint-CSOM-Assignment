@@ -21,7 +21,7 @@ namespace CreateSPSite.Models
             _context.Load(contentTypeColl);
             _context.ExecuteQuery();
 
-            var targetContentType = CheckExits(contentTypeColl);
+            var targetContentType = GetContentType(contentTypeColl);
 
             if (targetContentType != null)
             {
@@ -29,12 +29,14 @@ namespace CreateSPSite.Models
             }
             else
             {
+                var parentContentType = GetContentType(contentTypeColl, ParentTypeTitle);
                 // Create content Type
                 ContentTypeCreationInformation contentTypeCreationInformation = new ContentTypeCreationInformation
                 {
                     Name = Name,
                     Description = Description,
-                    Group = Group
+                    Group = Group,
+                    ParentContentType = parentContentType
                 };
 
                 targetContentType = contentTypeColl.Add(contentTypeCreationInformation);
@@ -45,11 +47,12 @@ namespace CreateSPSite.Models
             }
         }
 
-        private ContentType CheckExits(ContentTypeCollection collection)
+        private ContentType GetContentType(ContentTypeCollection collection, string contentTypeTitle = "")
         {
+            contentTypeTitle = contentTypeTitle != "" ? contentTypeTitle : Name;
             return (
                 from contentType in collection 
-                where contentType.Name == Name 
+                where contentType.Name == contentTypeTitle 
                 select contentType)
                 .FirstOrDefault();
         }
@@ -75,6 +78,7 @@ namespace CreateSPSite.Models
         public string Description { get; set; } = "New Custom Content Type";
         public string Group { get; set; } = "Training";
         public List<AbstractField> FieldsList { get; set; }
+        public string ParentTypeTitle { get; set; } = "Item";
         #endregion
     }
 }

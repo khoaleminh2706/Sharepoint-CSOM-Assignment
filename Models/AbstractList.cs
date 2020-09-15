@@ -44,12 +44,11 @@ namespace CreateSPSite.Models
             _context.Load(newList, li => li.ContentTypes);
             _context.ExecuteQuery();
 
+            newList.ContentTypesEnabled = true;
+            newList.ContentTypes.AddExistingContentType(targetContentType);
             
             if (TemplateType == (int)ListTemplateType.GenericList)
             {
-                newList.ContentTypesEnabled = true;
-                newList.ContentTypes.AddExistingContentType(targetContentType);
-
                 var itemContentType = GetContentType(newList.ContentTypes, "Item");
                 if (itemContentType != null)
                     itemContentType.DeleteObject();

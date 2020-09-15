@@ -86,7 +86,7 @@ namespace CreateSPSite
                         break;
                     case ConsoleKey.D3:
                         Console.WriteLine("Start creating project document...");
-                        //_contentTypeFactory.GetContentType(Constants.ContentType.ProjectDoc);
+                        _contentTypeFactory.GetContentType(Constants.ContentType.ProjectDoc);
                         AccessHrSite();
                         _listFactory.CreateList(Constants.ListTitle.ProjDoc);
                         Console.WriteLine("Finish creating project document...");
