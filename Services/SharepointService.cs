@@ -72,9 +72,8 @@ namespace CreateSPSite.Services
             #endregion
         }
 
-        public string CreateHRSubsite()
+        public Web CreateHRSubsite()
         {
-            string resultUrl = "";
             Console.WriteLine("Creating HR subsite");
             try
             {
@@ -91,14 +90,14 @@ namespace CreateSPSite.Services
                 Web web = _context.Site.RootWeb.Webs.Add(webCreationInfo);
                 _context.Load(web);
                 _context.ExecuteQuery();
-                resultUrl = web.Url;
+                return web;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Lỗi tạo HR subsite");
                 Console.WriteLine("Lỗi: " + ex.GetType().Name + " " + ex.Message);
             }
-            return resultUrl;
+            return null;
         }
     }
 }

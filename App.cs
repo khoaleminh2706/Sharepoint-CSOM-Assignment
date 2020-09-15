@@ -37,7 +37,7 @@ namespace CreateSPSite
             _siteUrl = Console.ReadLine();
 
             _provider = new SPClientContextProvider(_loginName, _password, _siteUrl);
-            ResetContext(_provider.Create());
+            ResetContext(_siteUrl);
 
             while (!_over)
             {
@@ -76,6 +76,7 @@ namespace CreateSPSite
                         AccessHrSite();
                         _listFactory.CreateList(Constants.ListTitle.Employees);
                         Console.WriteLine("Finish creating Employee...");
+                        ResetContext(_siteUrl);
                         break;
                     case ConsoleKey.D2:
                         Console.WriteLine("Start creating project...");
@@ -83,6 +84,7 @@ namespace CreateSPSite
                         AccessHrSite();
                         _listFactory.CreateList(Constants.ListTitle.Projects);
                         Console.WriteLine("Finish creating project...");
+                        ResetContext(_siteUrl);
                         break;
                     case ConsoleKey.D3:
                         Console.WriteLine("Start creating project document...");
@@ -90,6 +92,7 @@ namespace CreateSPSite
                         AccessHrSite();
                         _listFactory.CreateList(Constants.ListTitle.ProjDoc);
                         Console.WriteLine("Finish creating project document...");
+                        ResetContext(_siteUrl);
                         break;
                     case ConsoleKey.D4:
                         HandleCreateSite();
@@ -119,25 +122,26 @@ namespace CreateSPSite
         {
             Console.Write("Nhập link mới: ");
             _siteUrl = Console.ReadLine();
-            _provider.SiteUrl = _siteUrl;
-            ResetContext(_provider.Create());
+            ResetContext(_siteUrl);
         }
 
         private void AccessHrSite()
         {
-            Web hrWeb = null;
+            Web hrWeb;
             try
             {
                 hrWeb = _service.CheckHRSubsiteExist();
             }
             catch (Exception)
             {
-                Console.WriteLine("subite HR không tồn tại. Creating subsite...");
-                _service.CreateHRSubsite();
-                AccessHrSite();
+                Console.WriteLine("subite HR không tồn tại.");
+                Console.Write("Bạn có muốn tạo subsite [Y] Có [N] Tạo trên trang này.");
+                if (Console.ReadKey().Key == ConsoleKey.Y)
+                    hrWeb = _service.CreateHRSubsite();
+                else
+                    return;
             }
-            _provider.SiteUrl = hrWeb.Url;
-           ResetContext(_provider.Create());
+            ResetContext(hrWeb.Url);
         }
 
         private void HandleCreateSite()
@@ -152,12 +156,11 @@ namespace CreateSPSite
             Console.Write("Site Url: ");
             string url = Console.ReadLine();
 
-            _provider.SiteUrl = adminUrl;
-            ResetContext(_provider.Create());
+            ResetContext(adminUrl);
 
             string siteUrl = _service.CreateSite(rootSiteUrl, _loginName, siteTitle, url);
-            _provider.SiteUrl = siteUrl;
-            ResetContext(_provider.Create());
+            
+            ResetContext(siteUrl);
             _service.CreateHRSubsite();
 
             _contentTypeFactory.GetContentType(Constants.ContentType.Employee);
@@ -171,8 +174,10 @@ namespace CreateSPSite
             _listFactory.CreateList(Constants.ListTitle.ProjDoc);
         }
 
-        private void ResetContext(ClientContext context)
+        private void ResetContext(string url)
         {
+            _provider.SiteUrl = url;
+            var context = _provider.Create();
             _contentTypeFactory = new ContentTypeFactory(context);
             _listFactory = new ListFactory(context);
             _service = new SharepointService(context);
