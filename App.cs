@@ -80,7 +80,7 @@ namespace CreateSPSite
                         break;
                     case ConsoleKey.D2:
                         Console.WriteLine("Start creating project...");
-                        _contentTypeFactory.GetContentType(Constants.ContentType.Project);
+                        // _contentTypeFactory.GetContentType(Constants.ContentType.Project);
                         AccessHrSite();
                         _listFactory.CreateList(Constants.ListTitle.Projects);
                         Console.WriteLine("Finish creating project...");

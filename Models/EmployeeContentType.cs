@@ -28,10 +28,13 @@ namespace CreateSPSite.Models
                 { 
                     InternalName = "ProgrammingLanguages",
                     DisplayName = "Programming Languages",
-                    XmlSchema = $"<Field ID='{Guid.NewGuid()}' Type='MultiChoice' Name='ProgrammingLanguages' StaticName='ProgrammingLanguages' DisplayName='Programming Languages' Format='Dropdown'><CHOICES>" +
-                    $"<CHOICE>Business requirement</CHOICE>" +
-                    $"<CHOICE>Technical document</CHOICE>" +
-                    $"<CHOICE>User guide</CHOICE>" +
+                    XmlSchema = $"<Field ID='{Guid.NewGuid()}' Type='Choice' Name='ProgrammingLanguages' StaticName='ProgrammingLanguages' DisplayName='Programming Languages' Format='Dropdown' FillInChoice='FALSE'><CHOICES>" +
+                    $"<CHOICE>C#</CHOICE>" +
+                    $"<CHOICE>F#</CHOICE>" +
+                    $"<CHOICE>Java</CHOICE>" +
+                    $"<CHOICE>Jquery</CHOICE>" +
+                    $"<CHOICE>AngularJS</CHOICE>" +
+                    $"<CHOICE>Other</CHOICE>" +
                     $"</CHOICES></Field>" 
                 }
             };

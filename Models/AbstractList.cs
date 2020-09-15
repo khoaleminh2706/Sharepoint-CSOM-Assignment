@@ -7,7 +7,7 @@ namespace CreateSPSite.Models
 {
     public abstract class AbstractList: IDisposable
     {
-        private ClientContext _context;
+        protected ClientContext _context;
 
         public AbstractList(ClientContext context)
         {
@@ -64,8 +64,9 @@ namespace CreateSPSite.Models
             return newList;
         }
 
-        protected List CheckListExists(ListCollection collection)
+        protected List CheckListExists(ListCollection collection, string listTitle = "")
         {
+            listTitle = listTitle != "" ? listTitle : Title;
             return (from list in collection where list.Title == Title select list)
                 .FirstOrDefault();
         }
@@ -89,7 +90,7 @@ namespace CreateSPSite.Models
             _context.Load(targetView, v => v.ViewFields);
             _context.ExecuteQuery();
 
-            var fields = list.Fields.Where(fi => ColumnList.Contains(fi.InternalName)).ToList();
+            var fields = list.Fields.Where(fi => ColumnForDefaultView.Contains(fi.InternalName)).ToList();
 
             fields.ToList().ForEach(fi =>
             {
@@ -109,7 +110,8 @@ namespace CreateSPSite.Models
         public string ContentTypeTitle { get; set; }
         public int TemplateType { get; set; } = (int)ListTemplateType.GenericList;
         public string ViewTitle { get; set; } = "All Items";
-        public List<string> ColumnList { get; set; }
+        public List<string> ColumnForDefaultView { get; set; }
+        public string DependListTitle { get; set; }
         #endregion
     }
 }

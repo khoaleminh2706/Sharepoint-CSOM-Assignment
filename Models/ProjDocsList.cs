@@ -11,7 +11,7 @@ namespace CreateSPSite.Models
             ContentTypeTitle = Constants.ContentType.ProjectDoc;
             TemplateType = (int)ListTemplateType.DocumentLibrary;
             ViewTitle = "All Documents";
-            ColumnList = new List<string>
+            ColumnForDefaultView = new List<string>
             {
                 "DocDescription",
                 "DocType"
