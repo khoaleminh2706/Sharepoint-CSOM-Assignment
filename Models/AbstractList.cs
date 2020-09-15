@@ -29,7 +29,7 @@ namespace CreateSPSite.Models
                 throw new Exception("List đã tồn tại");
 
             // Check content type exists
-            var targetContentType = GetContentType(_context.Site.RootWeb.ContentTypes);
+            var targetContentType = GetContentType(contentTypeColl);
             if (targetContentType == null)
                 throw new Exception($"Content Type {ContentTypeTitle} không tồn tại. Vui lòng tạo content type trước.");
 
@@ -41,15 +41,19 @@ namespace CreateSPSite.Models
             };
 
             List newList = _context.Web.Lists.Add(creationInfo);
-            _context.Load(newList.ContentTypes);
+            _context.Load(newList, li => li.ContentTypes);
             _context.ExecuteQuery();
 
-            newList.ContentTypesEnabled = true;
-            newList.ContentTypes.AddExistingContentType(targetContentType);
             
-            var itemContentType = GetContentType(newList.ContentTypes, "Item");
-            if (itemContentType != null)
-                itemContentType.DeleteObject();
+            if (TemplateType == (int)ListTemplateType.GenericList)
+            {
+                newList.ContentTypesEnabled = true;
+                newList.ContentTypes.AddExistingContentType(targetContentType);
+
+                var itemContentType = GetContentType(newList.ContentTypes, "Item");
+                if (itemContentType != null)
+                    itemContentType.DeleteObject();
+            }
 
             newList.Update();
             _context.ExecuteQuery();

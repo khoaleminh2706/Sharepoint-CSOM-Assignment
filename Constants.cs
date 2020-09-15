@@ -19,7 +19,7 @@
         {
             public const string Employees = "Employees";
             public const string Projects = "Projects";
-            public const string ProjDoc = "Project Document";
+            public const string ProjDoc = "Project Documents";
         }
     }
 }

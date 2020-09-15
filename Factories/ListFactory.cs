@@ -26,6 +26,10 @@ namespace CreateSPSite.Factories
                     _model = new ProjectsList(_context);
                     _model.Create();
                     break;
+                case Constants.ListTitle.ProjDoc:
+                    _model = new ProjDocsList(_context);
+                    _model.Create();
+                    break;
                 default:
                     throw new Exception("Chương trình không hỗ trợ List này");
             }
