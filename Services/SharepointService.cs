@@ -6,18 +6,18 @@ namespace CreateSPSite.Services
 {
     public class SharepointService
     {
-        private readonly ClientContext _clientContext;
+        private readonly ClientContext _context;
 
         public SharepointService(ClientContext clientContext)
         {
-            _clientContext = clientContext;
+            _context = clientContext;
         }
 
         public Web CheckHRSubsiteExist()
         {
-            Web hrWeb = _clientContext.Site.OpenWeb("HR");
-            _clientContext.Load(hrWeb);
-            _clientContext.ExecuteQuery();
+            Web hrWeb = _context.Site.OpenWeb("HR");
+            _context.Load(hrWeb);
+            _context.ExecuteQuery();
             return hrWeb;
         }
 
@@ -26,7 +26,7 @@ namespace CreateSPSite.Services
             siteUrl = rootSiteUrl + "/sites/" + siteUrl;
 
             #region Create Site
-            var tenant = new Tenant(_clientContext);
+            var tenant = new Tenant(_context);
             var siteCreationProperties = new SiteCreationProperties
             {
 
@@ -52,9 +52,9 @@ namespace CreateSPSite.Services
             //Create the SiteCollection
             SpoOperation spo = tenant.CreateSite(siteCreationProperties);
 
-            _clientContext.Load(spo);
+            _context.Load(spo);
             Console.WriteLine("Start creating site...");
-            _clientContext.ExecuteQuery();
+            _context.ExecuteQuery();
 
             //Check if provisioning of the SiteCollection is complete.
             while (!spo.IsComplete)
@@ -62,9 +62,9 @@ namespace CreateSPSite.Services
                 //Wait for 30 seconds and then try again
                 System.Threading.Thread.Sleep(30000);
                 //spo.RefreshLoad();
-                _clientContext.Load(spo);
+                _context.Load(spo);
                 Console.WriteLine("Sau 30 giây....");
-                _clientContext.ExecuteQuery();
+                _context.ExecuteQuery();
             }
 
             Console.WriteLine("Site Created.");
@@ -88,9 +88,9 @@ namespace CreateSPSite.Services
                     Language = 1033,
                 };
 
-                Web web = _clientContext.Site.RootWeb.Webs.Add(webCreationInfo);
-                _clientContext.Load(web);
-                _clientContext.ExecuteQuery();
+                Web web = _context.Site.RootWeb.Webs.Add(webCreationInfo);
+                _context.Load(web);
+                _context.ExecuteQuery();
                 resultUrl = web.Url;
             }
             catch (Exception ex)

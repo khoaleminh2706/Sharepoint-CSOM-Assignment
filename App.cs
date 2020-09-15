@@ -72,14 +72,14 @@ namespace CreateSPSite
                 {
                     case ConsoleKey.D1:
                         Console.WriteLine("Start creating Employee...");
-                        //_contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+                        _contentTypeFactory.GetContentType(Constants.ContentType.Employee);
                         AccessHrSite();
                         _listFactory.CreateList(Constants.ListTitle.Employees);
                         Console.WriteLine("Finish creating Employee...");
                         break;
                     case ConsoleKey.D2:
                         Console.WriteLine("Start creating project...");
-                        //_contentTypeFactory.GetContentType(Constants.ContentType.Project);
+                        _contentTypeFactory.GetContentType(Constants.ContentType.Project);
                         AccessHrSite();
                         _listFactory.CreateList(Constants.ListTitle.Projects);
                         Console.WriteLine("Finish creating project...");
@@ -92,7 +92,7 @@ namespace CreateSPSite
                         Console.WriteLine("Finish creating project document...");
                         break;
                     case ConsoleKey.D4:
-                        // TODO: Create Site and Sub site
+                        HandleCreateSite();
                         break;
                     case ConsoleKey.D5:
                         Console.WriteLine(_provider.SiteUrl);
@@ -148,11 +148,35 @@ namespace CreateSPSite
            ResetContext(_provider.Create());
         }
 
-        private void HandleOption4()
+        private void HandleCreateSite()
         {
             Console.WriteLine("Create Site");
-            //string siteUrl = _service.CreateSite("https://khoaleminh-admin.sharepoint.com", "https://khoaleminh.sharepoint.com", "new site 2", "newsite2");
-            //Console.WriteLine(siteUrl);
+            Console.Write("Admin site Url: ");
+            string adminUrl = Console.ReadLine();
+            Console.Write("Root site Url: ");
+            string rootSiteUrl = Console.ReadLine();
+            Console.Write("Site Title: ");
+            string siteTitle = Console.ReadLine();
+            Console.Write("Site Url: ");
+            string url = Console.ReadLine();
+
+            _provider.SiteUrl = adminUrl;
+            ResetContext(_provider.Create());
+
+            string siteUrl = _service.CreateSite(rootSiteUrl, _loginName, siteTitle, url);
+            _provider.SiteUrl = siteUrl;
+            ResetContext(_provider.Create());
+            _service.CreateHRSubsite();
+
+            _contentTypeFactory.GetContentType(Constants.ContentType.Employee);
+            _contentTypeFactory.GetContentType(Constants.ContentType.Project);
+            _contentTypeFactory.GetContentType(Constants.ContentType.ProjectDoc);
+
+            AccessHrSite();
+
+            _listFactory.CreateList(Constants.ListTitle.Employees);
+            _listFactory.CreateList(Constants.ListTitle.Projects);
+            _listFactory.CreateList(Constants.ListTitle.ProjDoc);
         }
 
         private void ResetContext(ClientContext context)
