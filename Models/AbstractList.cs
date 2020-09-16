@@ -78,7 +78,7 @@ namespace CreateSPSite.Models
                 .FirstOrDefault();
         }
 
-        protected virtual List AddCustomColum(List list) => list;
+        protected virtual void AddCustomColum(List list, ListCollection webLists) { }
 
         protected virtual void AddView(List list)
         {

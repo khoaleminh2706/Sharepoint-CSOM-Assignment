@@ -20,9 +20,9 @@ namespace CreateSPSite.Models
             };
         }
 
-        protected override List AddCustomColum(List list)
+        protected override void AddCustomColum(List list, ListCollection webListCollection)
         {
-            var lookupList = CheckListExists(_context.Web.Lists, DependListTitle);
+            var lookupList = CheckListExists(webListCollection, DependListTitle);
             if (lookupList == null)
                 throw new Exception($"List {DependListTitle} không tồn tại");
             _context.Load(lookupList, li => li.Id);
@@ -35,7 +35,6 @@ namespace CreateSPSite.Models
             _context.Load(projField);
 
             list.Update();
-            return list;
         }
     }
 }

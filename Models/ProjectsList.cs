@@ -23,29 +23,28 @@ namespace CreateSPSite.Models
             };
         }
 
-        protected override List AddCustomColum(List list)
+        protected override void AddCustomColum(List list, ListCollection webListCollection)
         {
-            var employeesList = CheckListExists(_context.Web.Lists, DependListTitle);
-            if (employeesList == null)
-                throw new Exception("List employee không tồn tại");
-            _context.Load(employeesList, li => li.Id);
+            var dependentList = CheckListExists(webListCollection, DependListTitle);
+            if (dependentList == null)
+                throw new Exception($"List {DependListTitle} không tồn tại");
+            _context.Load(dependentList, li => li.Id);
             _context.ExecuteQuery();
             
-            string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + employeesList.Id + "' ShowField='Title' />";
+            string leaderFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='Lookup' Name='Leader' StaticName='Leader' DisplayName='Leader' List='" + dependentList.Id + "' ShowField='Title' />";
             Field leaderField = list.Fields.AddFieldAsXml(leaderFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
             leaderField.SetShowInEditForm(true);
             leaderField.SetShowInNewForm(true);
             _context.Load(leaderField);
 
             // Add member field
-            string memberFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='LookupMulti' Name='Member' StaticName='Member' DisplayName='Member' List='" + employeesList.Id + "' ShowField='Title' Mult='TRUE' />";
+            string memberFieldSchema = "<Field ID='" + Guid.NewGuid() + "' Type='LookupMulti' Name='Member' StaticName='Member' DisplayName='Member' List='" + dependentList.Id + "' ShowField='Title' Mult='TRUE' />";
             Field memberField = list.Fields.AddFieldAsXml(memberFieldSchema, true, AddFieldOptions.AddFieldInternalNameHint);
             memberField.SetShowInEditForm(true);
             memberField.SetShowInNewForm(true);
             _context.Load(memberField);
 
             list.Update();
-            return list;
         }
     }
 }
